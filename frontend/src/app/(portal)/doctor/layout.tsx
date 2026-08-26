@@ -210,8 +210,8 @@ export default function DoctorLayout({
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="border-gray-200 dark:border-slate-800" />
-                <DropdownMenuItem asChild>
-                  <Link href="/doctor/profile" className="flex items-center text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800">
+                <DropdownMenuItem>
+                  <Link href="/doctor/profile" className="flex items-center text-xs cursor-pointer w-full">
                     <UserCircle className="mr-2 h-4 w-4" />
                     <span>Profile Settings</span>
                   </Link>

@@ -8,7 +8,7 @@ import {
   Droplet, AlertTriangle, ShieldCheck, Stethoscope, 
   Upload, Camera, CheckCircle2, XCircle, RefreshCw, 
   Loader2, ArrowRight, Building, Globe, Award, 
-  FileCheck, Sparkles, UserCheck
+  FileCheck, Sparkles, UserCheck, Check
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';

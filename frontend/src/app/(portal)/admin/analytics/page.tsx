@@ -37,7 +37,7 @@ export default function AdminAnalyticsPage() {
         </div>
         <div className="flex gap-2">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger>
               <Button variant="outline" className="bg-white">
                 Last 6 Months <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
@@ -73,7 +73,7 @@ export default function AdminAnalyticsPage() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 12 }} tickFormatter={(val) => `₹${val/1000}k`} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Revenue']} />
+                <Tooltip formatter={(value: any) => [`₹${Number(value || 0).toLocaleString()}`, 'Revenue']} />
                 <Area type="monotone" dataKey="amount" stroke="#4f46e5" strokeWidth={3} fill="url(#colorRevenue)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -102,7 +102,7 @@ export default function AdminAnalyticsPage() {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => [`${value}%`, 'Percentage']} />
+                <Tooltip formatter={(value: any) => [`${value}%`, 'Percentage']} />
               </PieChart>
             </ResponsiveContainer>
             <div className="flex flex-wrap justify-center gap-4 mt-2 w-full">

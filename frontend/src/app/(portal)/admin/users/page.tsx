@@ -108,7 +108,7 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-4 text-gray-500">{user.joinedAt}</td>
                     <td className="px-6 py-4 text-right">
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                        <DropdownMenuTrigger>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500">
                             <MoreVertical className="h-4 w-4" />
                           </Button>

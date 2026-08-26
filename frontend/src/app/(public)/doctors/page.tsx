@@ -344,7 +344,7 @@ export default function DoctorSearch() {
             <CardContent className="space-y-4 pt-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-gray-700 dark:text-slate-300">Specialty</label>
-                <Select value={specialtyFilter} onValueChange={setSpecialtyFilter}>
+                <Select value={specialtyFilter} onValueChange={(val) => setSpecialtyFilter(val || '')}>
                   <SelectTrigger className="w-full text-xs h-9 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white">
                     <SelectValue placeholder="All Specialties" />
                   </SelectTrigger>
@@ -363,7 +363,7 @@ export default function DoctorSearch() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-gray-700 dark:text-slate-300">Consultation Type</label>
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <Select value={typeFilter} onValueChange={(val) => setTypeFilter(val || '')}>
                   <SelectTrigger className="w-full text-xs h-9 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white">
                     <SelectValue placeholder="Any Type" />
                   </SelectTrigger>

@@ -89,7 +89,7 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
     .substring(0, 2)
     .toUpperCase() || 'PT';
 
-  const navItems = [
+  const navItems: { section: string; items: { label: string; href: string; icon: any; isAi?: boolean; badge?: string; }[] }[] = [
     {
       section: "OVERVIEW",
       items: [
