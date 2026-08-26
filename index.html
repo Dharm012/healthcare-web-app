@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medicare+ | Your Health. Our Priority.</title>
+  <meta name="description" content="Medicare+ Healthcare Portal - Access health records, book appointments, and manage care with high security and interactive digital features.">
+  
+  <!-- Google Fonts & Lucide Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Ambient Animated Background Elements -->
+  <div class="bg-shape bg-shape-1"></div>
+  <div class="bg-shape bg-shape-2"></div>
+  <div class="bg-shape bg-shape-3"></div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Main Container -->
+  <div class="app-container">
+
+    <!-- LEFT PANEL: Hero & Value Proposition -->
+    <main class="hero-panel">
+      <!-- Header / Logo -->
+      <header class="brand-header">
+        <div class="logo-box">
+          <div class="logo-icon">
+            <i data-lucide="heart-pulse"></i>
+          </div>
+          <div class="logo-text">
+            <span class="brand-name">Medicare<span class="plus">+</span></span>
+            <span class="brand-tagline">Your Health. Our Priority.</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dynamic Hero Copy -->
+      <section class="hero-content">
+        <div class="badge-pill">
+          <span class="pulse-dot"></span>
+          <span>Next-Gen Healthcare Portal 2.0</span>
+        </div>
+        <h1 class="hero-title">
+          Welcome Back <br>
+          <span class="gradient-text">Your health journey starts here</span>
+        </h1>
+        <p class="hero-description">
+          Sign in to access your confidential medical records, schedule doctor appointments, connect with specialists via telehealth, and track your wellness progress.
+        </p>
+
+        <!-- Feature List with Hover Micro-Interactions -->
+        <div class="feature-list">
+          <div class="feature-item" tabindex="0">
+            <div class="feature-icon icon-shield">
+              <i data-lucide="shield-check"></i>
+            </div>
+            <div class="feature-info">
+              <h3>Secure & Private</h3>
+              <p>Your data is protected with enterprise-grade end-to-end encryption & HIPAA compliance.</p>
+            </div>
+          </div>
+
+          <div class="feature-item" tabindex="0">
+            <div class="feature-icon icon-calendar">
+              <i data-lucide="calendar-heart"></i>
+            </div>
+            <div class="feature-info">
+              <h3>Easy Appointments</h3>
+              <p>Book, reschedule, or meet virtual specialists with zero waiting room hassle.</p>
+            </div>
+          </div>
+
+          <div class="feature-item" tabindex="0">
+            <div class="feature-icon icon-file">
+              <i data-lucide="file-spreadsheet"></i>
+            </div>
+            <div class="feature-info">
+              <h3>Health Records</h3>
+              <p>Access prescriptions, test results, and immunity history anytime, anywhere.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Decorative Plant & Organic Waves Section -->
+      <div class="hero-illustration">
+        <div class="plant-container">
+          <svg class="plant-svg" viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Pot -->
+            <ellipse cx="100" cy="210" rx="35" ry="12" fill="#0c2e1f" opacity="0.1"/>
+            <path d="M72 165L80 215C80 220 88 225 100 225C112 225 120 220 120 215L128 165H72Z" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+            <ellipse cx="100" cy="165" rx="28" ry="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2"/>
+            
+            <!-- Stems -->
+            <path d="M100 165 Q98 120 90 70" stroke="#15803D" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M100 150 Q115 110 125 75" stroke="#16A34A" stroke-width="3" stroke-linecap="round"/>
+            <path d="M98 130 Q75 105 60 90" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round"/>
+
+            <!-- Leaves with natural organic curve -->
+            <!-- Main Stem Leaves -->
+            <path class="leaf leaf-1" d="M90 70 C70 50 50 65 65 80 C80 90 90 70 90 70Z" fill="#15803D"/>
+            <path class="leaf leaf-2" d="M92 72 C110 52 130 65 115 82 C100 92 92 72 92 72Z" fill="#22C55E"/>
+            <path class="leaf leaf-3" d="M95 100 C70 90 60 110 80 120 C95 122 95 100 95 100Z" fill="#16A34A"/>
+            <path class="leaf leaf-4" d="M99 110 C125 100 135 120 115 130 C99 132 99 110 99 110Z" fill="#4ADE80"/>
+            
+            <!-- Side Stem Leaves -->
+            <path class="leaf leaf-5" d="M125 75 C135 55 155 65 145 85 C132 95 125 75 125 75Z" fill="#15803D"/>
+            <path class="leaf leaf-6" d="M60 90 C45 75 35 90 50 102 C62 105 60 90 60 90Z" fill="#22C55E"/>
+          </svg>
+        </div>
+      </div>
+    </main>
+
+
+    <!-- RIGHT PANEL: Animated Form Container -->
+    <aside class="form-panel">
+      
+      <!-- CARD 1: SIGN IN VIEW -->
+      <div id="signin-card" class="auth-card active-card">
+        <div class="card-header">
+          <h2>Sign In</h2>
+          <p>Welcome back! Please enter your details.</p>
+        </div>
+
+        <form id="signin-form" autocomplete="on" novalidate>
+          
+          <!-- Email Input Group -->
+          <div class="input-group">
+            <label for="signin-email">Email Address</label>
+            <div class="input-wrapper">
+              <i data-lucide="mail" class="input-icon left-icon"></i>
+              <input 
+                type="email" 
+                id="signin-email" 
+                name="email" 
+                placeholder="john.doe@email.com" 
+                value="john.doe@email.com"
+                required
+              />
+              <span class="validation-status valid">
+                <i data-lucide="check-circle-2"></i>
+              </span>
+            </div>
+            <span class="error-msg" id="signin-email-error"></span>
+          </div>
+
+          <!-- Password Input Group -->
+          <div class="input-group">
+            <label for="signin-password">Password</label>
+            <div class="input-wrapper">
+              <i data-lucide="lock" class="input-icon left-icon"></i>
+              <input 
+                type="password" 
+                id="signin-password" 
+                name="password" 
+                placeholder="••••••••••••" 
+                value="secretPassword123"
+                required
+              />
+              <button type="button" class="toggle-password" id="toggle-signin-password" aria-label="Toggle password visibility">
+                <i data-lucide="eye" class="eye-icon"></i>
+              </button>
+            </div>
+            <span class="error-msg" id="signin-password-error"></span>
+          </div>
+
+          <!-- Extra Options -->
+          <div class="form-row-between">
+            <label class="checkbox-label">
+              <input type="checkbox" id="remember-me" checked>
+              <span class="custom-checkmark"></span>
+              <span class="checkbox-text">Remember me for 30 days</span>
+            </label>
+            <a href="#" class="forgot-link" id="link-forgot">Forgot Password?</a>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary ripple-btn" id="btn-signin">
+            <span class="btn-text">Sign In</span>
+            <i data-lucide="arrow-right" class="btn-arrow"></i>
+            <div class="spinner"></div>
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="divider">
+          <span>or continue with</span>
+        </div>
+
+        <!-- Social Sign-in Buttons -->
+        <div class="social-grid">
+          <button type="button" class="btn-social google-btn" id="btn-google">
+            <svg class="social-svg" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            <span>Google</span>
+          </button>
+
+          <button type="button" class="btn-social apple-btn" id="btn-apple">
+            <svg class="social-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.85c.56-.68.95-1.62.84-2.56-.82.03-1.83.55-2.42 1.24-.52.61-.98 1.58-.85 2.51.92.07 1.87-.5 2.43-1.19z"/>
+            </svg>
+            <span>Apple</span>
+          </button>
+        </div>
+
+        <!-- Switch Card Footer -->
+        <div class="card-footer">
+          <p>Don't have an account? <a href="#" id="link-signup" class="signup-link">Sign Up</a></p>
+        </div>
+      </div>
+
+      <!-- CARD 2: SIGN UP VIEW (DYNAMIC TOGGLE) -->
+      <div id="signup-card" class="auth-card hidden-card">
+        <div class="card-header">
+          <h2>Create Account</h2>
+          <p>Join Medicare+ for personalized, smart healthcare access.</p>
+        </div>
+
+        <form id="signup-form" novalidate>
+          <div class="input-group">
+            <label for="signup-name">Full Name</label>
+            <div class="input-wrapper">
+              <i data-lucide="user" class="input-icon left-icon"></i>
+              <input type="text" id="signup-name" placeholder="Dr. Jane Smith" required />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="signup-email">Email Address</label>
+            <div class="input-wrapper">
+              <i data-lucide="mail" class="input-icon left-icon"></i>
+              <input type="email" id="signup-email" placeholder="jane.smith@health.org" required />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="signup-password">Create Password</label>
+            <div class="input-wrapper">
+              <i data-lucide="lock" class="input-icon left-icon"></i>
+              <input type="password" id="signup-password" placeholder="At least 8 characters" required />
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary ripple-btn" id="btn-signup-submit">
+            <span class="btn-text">Create Free Account</span>
+            <i data-lucide="arrow-right" class="btn-arrow"></i>
+          </button>
+        </form>
+
+        <div class="card-footer">
+          <p>Already have an account? <a href="#" id="link-signin-back" class="signup-link">Sign In</a></p>
+        </div>
+      </div>
+
+      <!-- CARD 3: FORGOT PASSWORD VIEW -->
+      <div id="forgot-card" class="auth-card hidden-card">
+        <div class="card-header">
+          <h2>Reset Password</h2>
+          <p>Enter your email and we'll send a secure password reset link.</p>
+        </div>
+
+        <form id="forgot-form" novalidate>
+          <div class="input-group">
+            <label for="forgot-email">Email Address</label>
+            <div class="input-wrapper">
+              <i data-lucide="mail" class="input-icon left-icon"></i>
+              <input type="email" id="forgot-email" placeholder="john.doe@email.com" required />
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary ripple-btn">
+            <span class="btn-text">Send Reset Link</span>
+            <i data-lucide="send" class="btn-arrow"></i>
+          </button>
+        </form>
+
+        <div class="card-footer">
+          <p><a href="#" id="link-signin-from-forgot" class="signup-link">← Back to Sign In</a></p>
+        </div>
+      </div>
+
+      <!-- CARD 4: DASHBOARD PREVIEW VIEW (SUCCESSFUL SIGN IN) -->
+      <div id="dashboard-card" class="auth-card hidden-card dashboard-preview-card">
+        <div class="dashboard-welcome">
+          <div class="avatar-badge">
+            <i data-lucide="user-check"></i>
+          </div>
+          <h2>Welcome Back, <span id="user-display-name">John</span>!</h2>
+          <p class="status-online"><span class="dot"></span> Medicare+ Active Session</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-box">
+            <i data-lucide="calendar" class="stat-icon green"></i>
+            <span class="stat-val">2</span>
+            <span class="stat-lbl">Upcoming Appointments</span>
+          </div>
+          <div class="stat-box">
+            <i data-lucide="activity" class="stat-icon emerald"></i>
+            <span class="stat-val">98%</span>
+            <span class="stat-lbl">Vitals Normal</span>
+          </div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="action-tile" onclick="showToast('Opening virtual appointment scheduler...', 'info')">
+            <i data-lucide="video"></i>
+            <span>Start Telehealth Call</span>
+          </button>
+          <button class="action-tile" onclick="showToast('Loading digital health records...', 'success')">
+            <i data-lucide="file-text"></i>
+            <span>View Medical Reports</span>
+          </button>
+        </div>
+
+        <button type="button" id="btn-logout" class="btn btn-outline">
+          <i data-lucide="log-out"></i>
+          <span>Sign Out</span>
+        </button>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
