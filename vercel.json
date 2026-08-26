@@ -1,6 +1,22 @@
 {
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/.next",
-  "framework": "nextjs",
-  "cleanUrls": true
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "frontend": {
+      "root": "frontend",
+      "framework": "nextjs"
+    },
+    "backend": {
+      "root": "backend"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/backend/:match*",
+      "destination": "/api/backend/:match*"
+    },
+    {
+      "source": "/:match*",
+      "destination": "/frontend/:match*"
+    }
+  ]
 }
