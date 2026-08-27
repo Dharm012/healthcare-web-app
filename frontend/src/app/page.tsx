@@ -8,7 +8,8 @@ import * as z from 'zod';
 import { 
   HeartPulse, Video, Sparkles, ShieldCheck, Lock, CheckCircle2, 
   ArrowRight, Activity, Clock, Users, Award, Star, Mail, 
-  User, Stethoscope, ChevronRight, Loader2, Globe, Heart
+  User, Stethoscope, ChevronRight, Loader2, Globe, Heart,
+  Menu, X
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const loginSchema = z.object({
 });
 
 export default function LandingPage() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
   const [loginRole, setLoginRole] = useState<'patient' | 'doctor'>('patient');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -179,6 +181,13 @@ export default function LandingPage() {
 
           {/* Right CTA / Auth */}
           <div className="flex items-center gap-3">
+            <button 
+              className="md:hidden p-2 text-slate-300 hover:text-teal-400 focus:outline-none transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle mobile menu"
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
             <Link href="/login">
               <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800/60 text-xs sm:text-sm font-semibold">
                 Sign In
@@ -191,6 +200,19 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-teal-500/20 bg-[#05080d]/95 backdrop-blur-xl absolute top-full left-0 w-full shadow-2xl z-40">
+            <nav className="flex flex-col py-4 px-4 sm:px-8 gap-2">
+              <Link href="#features" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-teal-400 font-medium py-3 border-b border-slate-800/50 transition-colors">Features</Link>
+              <Link href="/symptom-checker" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-teal-400 font-medium py-3 border-b border-slate-800/50 transition-colors">3D Body Explorer</Link>
+              <Link href="/doctors" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-teal-400 font-medium py-3 border-b border-slate-800/50 transition-colors">Find a Doctor</Link>
+              <Link href="#telehealth" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-teal-400 font-medium py-3 border-b border-slate-800/50 transition-colors">Virtual Clinic</Link>
+              <Link href="#faqs" onClick={() => setIsMobileMenuOpen(false)} className="text-slate-300 hover:text-teal-400 font-medium py-3 transition-colors">FAQs</Link>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* ========================================================================= */}

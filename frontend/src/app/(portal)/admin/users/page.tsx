@@ -42,9 +42,9 @@ export default function AdminUsersPage() {
 
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3 border-b">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <CardTitle className="text-base font-semibold">All Users</CardTitle>
-            <div className="relative w-64">
+            <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search users..."

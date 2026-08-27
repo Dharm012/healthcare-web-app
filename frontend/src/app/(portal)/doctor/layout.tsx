@@ -18,6 +18,7 @@ import {
   LogOut,
   Menu,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -80,6 +81,7 @@ export default function DoctorLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const [doctorName, setDoctorName] = useState<string>("Doctor");
   const [doctorSpecialty, setDoctorSpecialty] = useState<string>("General Physician");
@@ -167,12 +169,66 @@ export default function DoctorLayout({
         </div>
       </aside>
 
+      {/* Mobile Drawer Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <aside className="absolute left-0 top-0 bottom-0 w-72 flex flex-col bg-white dark:bg-slate-900 shadow-2xl animate-in slide-in-from-left duration-300">
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 z-10"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-2 px-6 py-5 border-b border-gray-200 dark:border-slate-800">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-white shadow-xs">
+                <Stethoscope className="h-5 w-5" />
+              </div>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">HealthConnect</span>
+            </div>
+            <nav className="flex flex-1 flex-col gap-1 p-4 overflow-auto">
+              {sidebarNavItems.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 font-bold"
+                        : "text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+                    }`}
+                  >
+                    <item.icon className={`h-5 w-5 ${isActive ? "text-teal-600 dark:text-teal-400" : "text-gray-400 dark:text-slate-500"}`} />
+                    {item.title}
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="border-t border-gray-200 dark:border-slate-800 p-4">
+              <Button 
+                variant="ghost" 
+                onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
+                className="w-full justify-start text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer text-xs"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          </aside>
+        </div>
+      )}
+
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
         
         {/* Header */}
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 md:px-8 shadow-xs">
-          <Button variant="ghost" size="icon" className="md:hidden text-gray-700 dark:text-slate-300">
+          <Button variant="ghost" size="icon" className="md:hidden text-gray-700 dark:text-slate-300" onClick={() => setIsMobileMenuOpen(true)}>
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle menu</span>
           </Button>

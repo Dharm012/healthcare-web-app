@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   HeartPulse, LayoutDashboard, Stethoscope, Calendar, 
   Video, FileText, Pill, Activity, MessageSquare, 
-  Settings, LogOut, Bell, Bot, CheckCircle2, X
+  Settings, LogOut, Bell, Bot, CheckCircle2, X, Menu
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -16,6 +16,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 export default function PatientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [unreadMessages, setUnreadMessages] = useState<number>(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hasUnreadBell, setHasUnreadBell] = useState<boolean>(true);
   const [showBellDropdown, setShowBellDropdown] = useState<boolean>(false);
   const [patientName, setPatientName] = useState<string>("Patient");
@@ -196,11 +197,102 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
         </div>
       </aside>
 
+      {/* Mobile Drawer Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <aside className="absolute left-0 top-0 bottom-0 w-72 flex flex-col bg-white dark:bg-slate-900 shadow-2xl animate-in slide-in-from-left duration-300">
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 z-10"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="flex h-16 items-center border-b border-slate-200 dark:border-slate-800 px-6">
+              <Link href="/patient/dashboard" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
+                <HeartPulse className="h-6 w-6 text-teal-600 dark:text-teal-400" />
+                <span className="font-bold tracking-tight text-slate-900 dark:text-white text-base">
+                  HealthConnect <span className="text-teal-600 dark:text-teal-400">AI</span>
+                </span>
+              </Link>
+            </div>
+            <div className="flex-1 overflow-auto py-4">
+              <nav className="grid gap-1 px-4 text-xs font-medium">
+                {navItems.map((group) => (
+                  <div key={group.section} className="mb-4">
+                    <p className="px-2 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
+                      {group.section}
+                    </p>
+                    <div className="space-y-1">
+                      {group.items.map((item) => {
+                        const isActive = pathname === item.href;
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 transition-all ${
+                              isActive
+                                ? 'bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold border border-teal-200 dark:border-teal-500/50 shadow-xs'
+                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              {item.isAi ? (
+                                <div className="h-4 w-4 rounded-md bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 flex items-center justify-center font-bold text-[10px]">
+                                  AI
+                                </div>
+                              ) : (
+                                <item.icon className={`h-4 w-4 ${isActive ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 dark:text-slate-500'}`} />
+                              )}
+                              <span>{item.label}</span>
+                            </div>
+                            {item.badge && (
+                              <span className="w-5 h-5 rounded-full bg-teal-600 dark:bg-teal-400 text-white dark:text-slate-950 text-[10px] font-extrabold flex items-center justify-center shadow-xs">
+                                {item.badge}
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </nav>
+            </div>
+            <div className="border-t border-slate-200 dark:border-slate-800 p-4">
+              <Button 
+                variant="ghost" 
+                onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
+                className="w-full justify-start text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs cursor-pointer"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </Button>
+            </div>
+          </aside>
+        </div>
+      )}
+
       {/* Main Content Area */}
       <main className="flex flex-1 flex-col overflow-hidden min-w-0 bg-slate-50 dark:bg-[#05080d]">
         
         {/* Top Header */}
         <header className="flex h-16 items-center gap-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 sm:px-6 shadow-xs z-10 shrink-0 relative">
+          {/* Mobile hamburger */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="md:hidden text-slate-700 dark:text-slate-300 shrink-0"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle menu</span>
+          </Button>
+
           <div className="w-full flex-1">
             <h1 className="text-sm font-bold text-slate-800 dark:text-slate-200">Patient Clinical Portal</h1>
           </div>
@@ -228,7 +320,7 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
 
               {/* Notification Dropdown */}
               {showBellDropdown && (
-                <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-teal-500/30 shadow-2xl p-4 z-50 space-y-3 text-left">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-teal-500/30 shadow-2xl p-4 z-50 space-y-3 text-left">
                   <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                       <Bell className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" /> Notifications

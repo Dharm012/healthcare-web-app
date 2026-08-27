@@ -121,10 +121,10 @@ export default function PublicSymptomCheckerPage() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 h-[calc(100vh-190px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 h-auto lg:h-[calc(100vh-190px)]">
           
           {/* Chat Column */}
-          <Card className="border border-teal-500/40 bg-card shadow-xs lg:col-span-8 flex flex-col overflow-hidden rounded-2xl">
+          <Card className="border border-teal-500/40 bg-card shadow-xs lg:col-span-8 flex flex-col overflow-hidden rounded-2xl min-h-[420px]">
             <CardHeader className="p-4 border-b border-border/50 bg-slate-900/40 flex flex-row items-center gap-2">
               <Bot className="w-5 h-5 text-teal-400" />
               <CardTitle className="text-sm font-bold text-white">AI Symptom Assistant</CardTitle>

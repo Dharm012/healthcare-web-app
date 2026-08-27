@@ -78,6 +78,7 @@ export default function DoctorMessagesPage() {
   const [messagesList, setMessagesList] = useState(patientMessagesMap[1]);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeMobileView, setActiveMobileView] = useState<'list' | 'chat'>('list');
 
   const markChatAsRead = (chatId: number) => {
     setConversationsList(prev => prev.map(c => c.id === chatId ? { ...c, unread: 0 } : c));
@@ -93,6 +94,7 @@ export default function DoctorMessagesPage() {
   const handleSelectConversation = (id: number) => {
     setSelectedChat(id);
     markChatAsRead(id);
+    setActiveMobileView('chat');
   };
 
   const handleSend = (e: React.FormEvent) => {
@@ -131,10 +133,10 @@ export default function DoctorMessagesPage() {
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-210px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-auto lg:h-[calc(100vh-210px)]">
         
         {/* Left: Patient List */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs lg:col-span-4 overflow-hidden flex flex-col rounded-2xl">
+        <Card className={`border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs lg:col-span-4 overflow-hidden flex-col rounded-2xl ${activeMobileView === 'chat' ? 'hidden lg:flex' : 'flex'}`}>
           <div className="p-3.5 border-b border-slate-100 dark:border-slate-800">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-gray-500" />
@@ -194,11 +196,19 @@ export default function DoctorMessagesPage() {
         </Card>
 
         {/* Right: Chat View */}
-        <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs lg:col-span-8 flex flex-col rounded-2xl overflow-hidden">
+        <Card className={`border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs lg:col-span-8 flex-col rounded-2xl overflow-hidden min-h-[500px] lg:min-h-0 ${activeMobileView === 'list' ? 'hidden lg:flex' : 'flex'}`}>
           
           {/* Header */}
           <div className="p-3.5 sm:px-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-950/60">
             <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="lg:hidden p-1 h-8 -ml-2" 
+                onClick={() => setActiveMobileView('list')}
+              >
+                ← Back
+              </Button>
               <Avatar className="h-9 w-9 border border-teal-200 dark:border-teal-800">
                 <AvatarFallback className="bg-teal-600 text-white font-bold text-xs">
                   {currentChat.avatar}

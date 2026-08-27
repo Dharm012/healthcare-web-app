@@ -98,10 +98,10 @@ export default function AIAssistantPage() {
       </div>
 
       {/* Main 2-Column Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 h-[calc(100vh-210px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 h-auto lg:h-[calc(100vh-210px)]">
         
         {/* Left Column: AI Symptom Checker Chat */}
-        <Card className="border border-slate-200 dark:border-teal-500/40 bg-white dark:bg-card shadow-xs lg:col-span-8 flex flex-col overflow-hidden rounded-2xl">
+        <Card className="border border-slate-200 dark:border-teal-500/40 bg-white dark:bg-card shadow-xs lg:col-span-8 flex flex-col overflow-hidden rounded-2xl min-h-[420px]">
           <CardHeader className="p-4 border-b border-slate-100 dark:border-border/50 bg-slate-50/70 dark:bg-slate-900/40 flex flex-row items-center gap-2 text-left">
             <Bot className="w-5 h-5 text-teal-600 dark:text-teal-400" />
             <CardTitle className="text-sm font-bold text-slate-900 dark:text-white">AI Symptom Checker</CardTitle>

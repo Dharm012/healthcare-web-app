@@ -597,7 +597,7 @@ export default function VideoConsultationRoomPage() {
       </header>
 
       {/* Main Video Viewports Grid */}
-      <main className="flex-1 p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-4 relative overflow-hidden">
+      <main className="flex-1 p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-4 relative overflow-y-auto lg:overflow-hidden">
         
         {/* Remote Video Stream (Main Focus) */}
         <div className={`${showChat ? 'lg:col-span-8' : 'lg:col-span-12'} transition-all duration-300 relative rounded-3xl bg-slate-950 border border-teal-500/30 overflow-hidden flex items-center justify-center shadow-2xl`}>
@@ -627,7 +627,7 @@ export default function VideoConsultationRoomPage() {
           )}
 
           {/* Local PiP Preview (Bottom Right inside Main View) */}
-          <div className="absolute bottom-4 right-4 w-36 h-24 sm:w-48 sm:h-32 rounded-2xl bg-slate-900 border-2 border-teal-400 shadow-2xl overflow-hidden flex items-center justify-center z-10">
+          <div className="absolute bottom-4 right-4 w-28 h-20 sm:w-48 sm:h-32 rounded-2xl bg-slate-900 border-2 border-teal-400 shadow-2xl overflow-hidden flex items-center justify-center z-10">
             <video 
               ref={localVideoRef} 
               autoPlay 
@@ -650,7 +650,7 @@ export default function VideoConsultationRoomPage() {
 
         {/* In-Call Telehealth Chat Sidebar */}
         {showChat && (
-          <div className="lg:col-span-4 rounded-3xl bg-slate-900/90 border border-teal-500/30 flex flex-col justify-between overflow-hidden shadow-2xl">
+          <div className="fixed inset-x-0 bottom-0 top-16 z-40 lg:relative lg:inset-auto lg:z-auto lg:col-span-4 rounded-t-3xl lg:rounded-3xl bg-slate-900/95 lg:bg-slate-900/90 border border-teal-500/30 flex flex-col justify-between overflow-hidden shadow-2xl backdrop-blur-md lg:backdrop-blur-none">
             <div className="p-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
               <h4 className="text-xs font-bold text-white flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-teal-400" />
