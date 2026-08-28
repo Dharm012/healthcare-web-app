@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { 
   CreateAppointmentDto, RejectAppointmentDto, CancelAppointmentDto 
 } from './dto/appointment.dto';
+import { PrescriptionsService } from '../prescriptions/prescriptions.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -13,7 +14,10 @@ export class AppointmentsService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(AppointmentsService.name);
   private sweeperInterval: NodeJS.Timeout | null = null;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private prescriptionsService: PrescriptionsService,
+  ) {}
 
   onModuleInit() {
     // Run automated time-based expiration sweeper every 30 seconds
@@ -546,6 +550,13 @@ export class AppointmentsService implements OnModuleInit, OnModuleDestroy {
     });
 
     if (finalStatus === 'COMPLETED') {
+      // Finalize any active prescription draft and generate daily medication reminder schedules
+      try {
+        await this.prescriptionsService.onConsultationEnded(appointment.id);
+      } catch (err: any) {
+        this.logger.error(`Error activating prescription for appointment ${appointment.id}: ${err.message}`);
+      }
+
       // Notify Patient
       await this.prisma.notification.create({
         data: {

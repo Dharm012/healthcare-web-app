@@ -12,8 +12,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
+import { toast } from '@/components/ui/toast';
 
 interface HealthTip {
   title: string;
@@ -305,6 +306,49 @@ export default function PatientDashboard() {
     }
   });
 
+  const queryClient = useQueryClient();
+
+  const { data: todayReminders = [], isLoading: isLoadingReminders } = useQuery({
+    queryKey: ['prescriptions', 'reminders', 'today'],
+    queryFn: async () => {
+      try {
+        const response = await api.get('/api/prescriptions/patient/reminders/today');
+        return response.data;
+      } catch {
+        return [];
+      }
+    }
+  });
+
+  const handleMarkTaken = async (id: string, name: string) => {
+    try {
+      await api.patch(`/api/prescriptions/reminders/${id}/taken`);
+      queryClient.invalidateQueries({ queryKey: ['prescriptions', 'reminders', 'today'] });
+      toast.add({
+        title: 'Dose Recorded',
+        description: `Successfully marked ${name} as taken!`,
+        type: 'success',
+      });
+    } catch {
+      toast.add({ title: 'Error', description: 'Failed to record dose.', type: 'error' });
+    }
+  };
+
+  const handleSkipDose = async (id: string, name: string) => {
+    const reason = prompt(`Reason for skipping ${name}? (Optional):`) || 'Skipped by patient';
+    try {
+      await api.patch(`/api/prescriptions/reminders/${id}/skip`, { reason });
+      queryClient.invalidateQueries({ queryKey: ['prescriptions', 'reminders', 'today'] });
+      toast.add({
+        title: 'Dose Skipped',
+        description: `${name} has been marked as skipped.`,
+        type: 'info',
+      });
+    } catch {
+      toast.add({ title: 'Error', description: 'Failed to skip dose.', type: 'error' });
+    }
+  };
+
   const nextAppointment = (appointments || []).find((a: any) => a.status === 'CONFIRMED' || a.status === 'PENDING');
 
   return (
@@ -362,62 +406,113 @@ export default function PatientDashboard() {
             </div>
             <div>
               <CardTitle className="text-sm font-bold text-slate-900 dark:text-white">Medicine Intake Reminder</CardTitle>
-              <CardDescription className="text-[11px] text-slate-500 dark:text-gray-400">Today&apos;s medication schedule</CardDescription>
+              <CardDescription className="text-[11px] text-slate-500 dark:text-gray-400">Today&apos;s medication schedule &amp; adherence tracker</CardDescription>
             </div>
           </div>
+
+          <Link href="/patient/prescriptions" className="text-[11px] font-bold text-teal-600 dark:text-teal-400 hover:underline">
+            View All Prescriptions →
+          </Link>
         </CardHeader>
         <CardContent className="pt-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            
-            {/* Med 1: Taken */}
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-emerald-200 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/20">
-              <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-                <Pill className="h-4 w-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">Atorvastatin 20mg</p>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400">8:00 AM — Morning</p>
-              </div>
-              <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 shrink-0 text-[10px] px-2 py-0.5">Taken</Badge>
+          {isLoadingReminders ? (
+            <div className="py-6 text-center text-xs text-slate-400">
+              Loading today&apos;s scheduled medicines...
             </div>
-
-            {/* Med 2: Taken */}
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-emerald-200 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/20">
-              <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-                <Pill className="h-4 w-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">Lisinopril 10mg</p>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400">8:00 AM — Morning</p>
-              </div>
-              <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 shrink-0 text-[10px] px-2 py-0.5">Taken</Badge>
+          ) : todayReminders.length === 0 ? (
+            <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-center space-y-2">
+              <Pill className="w-8 h-8 text-teal-600/40 mx-auto" />
+              <p className="text-xs font-bold text-slate-800 dark:text-slate-200">No Pending Doses for Today</p>
+              <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                All medications prescribed by your doctor during video consultations will automatically appear here with daily reminders.
+              </p>
+              <Button size="sm" variant="outline" className="text-xs h-8 border-slate-300 dark:border-slate-700" asChild>
+                <Link href="/patient/prescriptions">Browse Prescription Archive</Link>
+              </Button>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {todayReminders.map((dose: any) => {
+                const isTaken = dose.adherenceStatus === 'TAKEN';
+                const isSkipped = dose.adherenceStatus === 'SKIPPED';
+                const isPending = dose.adherenceStatus === 'PENDING';
 
-            {/* Med 3: Pending (Due Now!) */}
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-amber-300 dark:border-amber-500/80 bg-amber-50 dark:bg-amber-950/30 ring-1 ring-amber-300 dark:ring-amber-500/50">
-              <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 animate-pulse">
-                <Pill className="h-4 w-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">Atorvastatin 20mg</p>
-                <p className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold">2:00 PM — Due now!</p>
-              </div>
-              <Badge className="bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/60 shrink-0 text-[10px] px-2 py-0.5">Pending</Badge>
+                return (
+                  <div 
+                    key={dose.id} 
+                    className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between space-y-2.5 ${
+                      isTaken
+                        ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/70 dark:bg-emerald-950/20'
+                        : isSkipped
+                        ? 'border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30 opacity-75'
+                        : 'border-amber-300 dark:border-amber-500/60 bg-amber-50/70 dark:bg-amber-950/20 ring-1 ring-amber-300 dark:ring-amber-500/40'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
+                          isTaken ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600' :
+                          isSkipped ? 'bg-slate-200 dark:bg-slate-800 text-slate-500' :
+                          'bg-amber-100 dark:bg-amber-900/50 text-amber-600 animate-pulse'
+                        }`}>
+                          <Pill className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">{dose.medicineName}</h4>
+                          <p className="text-[10px] text-slate-500 dark:text-gray-400">{dose.dosage}</p>
+                        </div>
+                      </div>
+
+                      <Badge className={`shrink-0 text-[9px] px-2 py-0.5 ${
+                        isTaken ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300' :
+                        isSkipped ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300' :
+                        'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300'
+                      }`}>
+                        {isTaken ? '✓ Taken' : isSkipped ? 'Skipped' : 'Pending'}
+                      </Badge>
+                    </div>
+
+                    <div className="space-y-1 text-[10px] text-slate-600 dark:text-slate-300 bg-white/60 dark:bg-slate-950/60 p-2 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                      <div className="flex justify-between">
+                        <span>⏰ <strong>{dose.scheduledTime}</strong></span>
+                        <span className="font-mono text-teal-600 dark:text-teal-400">Day {dose.dayNumber} of {dose.totalDays}</span>
+                      </div>
+                      {dose.instructions && (
+                        <div className="text-slate-500 dark:text-slate-400 truncate">
+                          🍽 {dose.instructions}
+                        </div>
+                      )}
+                      {dose.takenAt && (
+                        <div className="text-[9px] text-emerald-600 dark:text-emerald-400">
+                          Logged at {new Date(dose.takenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      )}
+                    </div>
+
+                    {isPending && (
+                      <div className="flex gap-1.5 pt-1">
+                        <Button
+                          size="sm"
+                          onClick={() => handleMarkTaken(dose.id, dose.medicineName)}
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] h-7 rounded-xl shadow-xs cursor-pointer"
+                        >
+                          Mark as Taken
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleSkipDose(dose.id, dose.medicineName)}
+                          className="text-[10px] h-7 px-2.5 rounded-xl border-slate-300 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                        >
+                          Skip
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-
-            {/* Med 4: Later */}
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
-              <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-gray-400 shrink-0">
-                <Pill className="h-4 w-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">Vitamin D 1000IU</p>
-                <p className="text-[10px] text-slate-500 dark:text-gray-400">9:00 PM — Bedtime</p>
-              </div>
-              <Badge variant="outline" className="text-slate-500 dark:text-gray-400 border-slate-300 dark:border-slate-700 shrink-0 text-[10px] px-2 py-0.5">Later</Badge>
-            </div>
-
-          </div>
+          )}
         </CardContent>
       </Card>
 

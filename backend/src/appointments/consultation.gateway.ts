@@ -87,9 +87,30 @@ export class ConsultationGateway implements OnGatewayConnection, OnGatewayDiscon
   @SubscribeMessage('in-call-message')
   handleInCallMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { roomId: string; sender: string; text: string; time: string },
+    @MessageBody() payload: { roomId: string; sender: string; text: string; time: string; type?: string; metadata?: any },
   ) {
     this.server.to(payload.roomId).emit('in-call-message', payload);
+  }
+
+  @SubscribeMessage('prescription-sync')
+  handlePrescriptionSync(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { roomId: string; prescription: any },
+  ) {
+    client.to(payload.roomId).emit('prescription-sync', {
+      prescription: payload.prescription,
+      updatedBy: client.id,
+    });
+  }
+
+  @SubscribeMessage('prescription-finalized')
+  handlePrescriptionFinalized(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { roomId: string; prescription: any },
+  ) {
+    this.server.to(payload.roomId).emit('prescription-finalized', {
+      prescription: payload.prescription,
+    });
   }
 
   @SubscribeMessage('end-call')

@@ -279,9 +279,13 @@ model Prescription {
   consultationId String?
   consultation   Consultation?  @relation(fields: [consultationId], references: [id])
 
-  diagnosis String?
-  status    String   @default("ACTIVE")
-  issuedAt  DateTime @default(now())
+  diagnosis   String?
+  notes       String?
+  status      String    @default("DRAFT") // DRAFT, FINALIZED, ACTIVE, COMPLETED, CANCELLED
+  issuedAt    DateTime  @default(now())
+  finalizedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   medications PrescriptionMedication[]
 }
@@ -292,23 +296,44 @@ model PrescriptionMedication {
   prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
 
   medicineName String
-  dosage       String
-  route        String?
-  frequency    String
-  duration     String
-  instructions String?
+  medicineType String?      @default("TABLET") // TABLET, CAPSULE, SYRUP, INJECTION, CREAM, OTHER
+  dosage       String       // e.g. "500 mg", "1 tablet", "5 ml"
+  route        String?      // ORAL, TOPICAL, etc.
+  frequency    String       // Once daily, Twice daily, Three times daily, Four times daily, Every X hours, As needed
+  timing       String?      // JSON array string e.g. '["09:00 AM", "09:00 PM"]'
+  duration     String       // e.g. "5 days"
+  durationDays Int?         @default(5)
+  startDate    DateTime?    @default(now())
+  endDate      DateTime?
+  instructions String?      // e.g. "Take after food"
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  schedules MedicationSchedule[]
 }
 
 model MedicationSchedule {
-  id           String         @id @default(uuid())
-  patientId    String
-  patient      PatientProfile @relation(fields: [patientId], references: [id])
-  medicationId String // ID from external medicine DB or PrescriptionMedication
+  id                      String                  @id @default(uuid())
+  patientId               String
+  patient                 PatientProfile          @relation(fields: [patientId], references: [id])
+  medicationId            String?
+  prescriptionMedication  PrescriptionMedication? @relation(fields: [medicationId], references: [id], onDelete: Cascade)
 
   medicineName    String
-  scheduledTime   String // e.g. "08:00"
-  reminderEnabled Boolean @default(true)
-  adherenceStatus String  @default("PENDING") // TAKEN, MISSED, PENDING
+  medicineType    String?   @default("TABLET")
+  dosage          String?
+  instructions    String?
+  scheduledDate   DateTime  @default(now())
+  scheduledTime   String    // e.g. "09:00 AM"
+  dayNumber       Int?      @default(1)
+  totalDays       Int?      @default(5)
+  reminderEnabled Boolean   @default(true)
+  adherenceStatus String    @default("PENDING") // PENDING, TAKEN, SKIPPED, MISSED, EXPIRED
+  takenAt         DateTime?
+  skippedAt       DateTime?
+  skipReason      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Vital {
