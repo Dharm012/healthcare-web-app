@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
+import { toast } from '@/components/ui/toast';
+
 const revenueData = [
   { month: 'Jan', amount: 120000 }, { month: 'Feb', amount: 135000 },
   { month: 'Mar', amount: 125000 }, { month: 'Apr', amount: 160000 },
@@ -28,6 +30,8 @@ const userGrowthData = [
 ];
 
 export default function AdminAnalyticsPage() {
+  const handleComingSoon = () => toast.add({ title: 'Coming Soon', description: 'This feature will be available soon.', type: 'info' });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -50,7 +54,7 @@ export default function AdminAnalyticsPage() {
               <DropdownMenuItem>All Time</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button className="bg-indigo-600 hover:bg-indigo-700">Export Report</Button>
+          <Button onClick={handleComingSoon} className="bg-indigo-600 hover:bg-indigo-700">Export Report</Button>
         </div>
       </div>
 

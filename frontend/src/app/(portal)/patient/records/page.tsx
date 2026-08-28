@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 
+import { toast } from '@/components/ui/toast';
+
 const diagnoses = [
   { id: 1, condition: 'Hyperlipidemia (Elevated LDL)', date: 'Aug 20, 2026', doctor: 'Dr. Dharm Patel', severity: 'Moderate' },
   { id: 2, condition: 'Essential Hypertension (Stage 1)', date: 'Mar 10, 2026', doctor: 'Dr. Dharm Patel', severity: 'Mild' },
@@ -25,6 +27,8 @@ export default function PatientRecordsPage() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadForm, setUploadForm] = useState({ title: '', description: '', type: 'LAB_RESULT' });
   const queryClient = useQueryClient();
+
+  const handleComingSoon = () => toast.add({ title: 'Coming Soon', description: 'This feature will be available soon.', type: 'info' });
 
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['medical-records', 'patient'],
@@ -132,29 +136,35 @@ export default function PatientRecordsPage() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-3">
-          {diagnoses.map((diag) => (
-            <Card key={diag.id} className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs rounded-xl overflow-hidden text-left">
-              <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-3.5">
-                  <div className="h-10 w-10 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">{diag.condition}</h4>
-                      <Badge className="bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800 text-[10px]">
-                        {diag.severity}
-                      </Badge>
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+            </div>
+          ) : (
+            diagnoses.map((diag) => (
+              <Card key={diag.id} className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs rounded-xl overflow-hidden text-left">
+                <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="h-10 w-10 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0">
+                      <FileText className="h-5 w-5" />
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Diagnosed on {diag.date} • {diag.doctor}</p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{diag.condition}</h4>
+                        <Badge className="bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800 text-[10px]">
+                          {diag.severity}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Diagnosed on {diag.date} • {diag.doctor}</p>
+                    </div>
                   </div>
-                </div>
-                <Button size="sm" variant="outline" className="text-xs h-8 border-slate-200 dark:border-slate-700">
-                  <Eye className="h-3.5 w-3.5 mr-1" /> View Details
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                  <Button onClick={handleComingSoon} size="sm" variant="outline" className="text-xs h-8 border-slate-200 dark:border-slate-700">
+                    <Eye className="h-3.5 w-3.5 mr-1" /> View Details
+                  </Button>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </TabsContent>
 
         <TabsContent value="diagnoses" className="space-y-3">

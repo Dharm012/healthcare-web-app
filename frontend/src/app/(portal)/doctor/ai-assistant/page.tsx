@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/toast";
 import { Bot, Send, Sparkles, Stethoscope, AlertCircle, FileText, Loader2 } from "lucide-react";
+import api from '@/lib/api';
 
 export default function DoctorAIAssistantPage() {
   const [messages, setMessages] = useState([
@@ -19,7 +21,7 @@ export default function DoctorAIAssistantPage() {
   const [inputValue, setInputValue] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
@@ -35,11 +37,13 @@ export default function DoctorAIAssistantPage() {
     setInputValue("");
     setIsAnalyzing(true);
 
-    setTimeout(() => {
-      let aiResponse = "Based on current clinical guidelines (MCI & ACC/AHA), initial first-line therapy involves lifestyle modification paired with guideline-directed medical therapy. Consider monitoring liver function enzymes (ALT/AST) and serum creatinine before titration.";
-      if (userPrompt.toLowerCase().includes("atorvastatin") || userPrompt.toLowerCase().includes("lipid")) {
-        aiResponse = "Clinical Insight for Dyslipidemia: High-intensity statin therapy (Atorvastatin 20-40mg daily) typically reduces LDL-C by ≥50%. Ensure baseline CPK evaluation if patient reports myalgia.";
-      }
+    try {
+      const response = await api.post('/api/ai/symptom-check', { 
+        history: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })) 
+      });
+      
+      const result = response.data;
+      const aiResponse = result.recommendation || result.message || result.answer || "Based on the clinical query provided, no specific recommendation was generated. Please adjust the input.";
 
       setMessages(prev => [
         ...prev,
@@ -50,8 +54,25 @@ export default function DoctorAIAssistantPage() {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
+    } catch (error) {
+      toast.add({
+        title: "Error",
+        description: "Failed to fetch AI response.",
+        type: "error"
+      });
+      
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "ai",
+          content: "I encountered an error while analyzing your clinical query. Please check your connection and try again.",
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+    } finally {
       setIsAnalyzing(false);
-    }, 800);
+    }
   };
 
   return (

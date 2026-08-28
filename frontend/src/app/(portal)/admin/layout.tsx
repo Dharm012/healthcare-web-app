@@ -21,10 +21,8 @@ const sidebarNavItems = [
   ]},
   { section: "Insights", items: [
     { title: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-    { title: "Audit Logs", href: "/admin/audit-logs", icon: ScrollText },
   ]},
   { section: "Content", items: [
-    { title: "Articles & FAQs", href: "/admin/content", icon: FileEdit },
     { title: "Platform Settings", href: "/admin/settings", icon: Settings },
   ]},
 ];

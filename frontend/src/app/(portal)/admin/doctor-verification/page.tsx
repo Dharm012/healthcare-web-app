@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import { toast } from '@/components/ui/toast';
+
 const verificationRequests = [
   {
     id: 'REQ-101', name: 'Dr. Anika Patel', specialty: 'Dermatology', license: 'MCI-294812', 
@@ -28,6 +30,8 @@ const verificationRequests = [
 ];
 
 export default function DoctorVerificationPage() {
+  const handleComingSoon = () => toast.add({ title: 'Coming Soon', description: 'This feature will be available soon.', type: 'info' });
+
   return (
     <div className="space-y-6">
       <div>
@@ -82,10 +86,10 @@ export default function DoctorVerificationPage() {
                             {doc}
                           </div>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-indigo-600">
+                            <Button onClick={handleComingSoon} variant="ghost" size="icon" className="h-7 w-7 text-indigo-600">
                               <ExternalLink className="h-3 w-3" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-gray-500">
+                            <Button onClick={handleComingSoon} variant="ghost" size="icon" className="h-7 w-7 text-gray-500">
                               <Download className="h-3 w-3" />
                             </Button>
                           </div>
@@ -96,13 +100,13 @@ export default function DoctorVerificationPage() {
 
                   {/* Actions */}
                   <div className="lg:w-48 flex flex-col justify-center gap-3">
-                    <Button className="w-full bg-green-600 hover:bg-green-700">
+                    <Button onClick={handleComingSoon} className="w-full bg-green-600 hover:bg-green-700">
                       <CheckCircle className="mr-2 h-4 w-4" /> Approve
                     </Button>
-                    <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
+                    <Button onClick={handleComingSoon} variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700">
                       <XCircle className="mr-2 h-4 w-4" /> Reject
                     </Button>
-                    <Button variant="ghost" className="w-full text-sm text-gray-500">
+                    <Button onClick={handleComingSoon} variant="ghost" className="w-full text-sm text-gray-500">
                       Request More Info
                     </Button>
                   </div>

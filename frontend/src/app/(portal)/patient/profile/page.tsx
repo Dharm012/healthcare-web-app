@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import { toast } from '@/components/ui/toast';
+
 export default function ProfilePage() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -21,6 +23,8 @@ export default function ProfilePage() {
   const [email, setEmail] = useState('patient@example.com');
   const [phone, setPhone] = useState('+91 98765 43210');
   const [patientId, setPatientId] = useState('HC-98214');
+
+  const handleComingSoon = () => toast.add({ title: 'Coming Soon', description: 'This feature will be available soon.', type: 'info' });
 
   useEffect(() => {
     setMounted(true);
@@ -89,7 +93,7 @@ export default function ProfilePage() {
                     <Avatar className="h-16 w-16 border-2 border-teal-500/40">
                       <AvatarFallback className="bg-teal-600 text-white font-bold text-xl">{initials}</AvatarFallback>
                     </Avatar>
-                    <Button size="icon" variant="outline" type="button" className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                    <Button onClick={handleComingSoon} size="icon" variant="outline" type="button" className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                       <Camera className="h-3 w-3" />
                     </Button>
                   </div>
@@ -200,7 +204,7 @@ export default function ProfilePage() {
                   <Label className="text-xs font-semibold">New Password</Label>
                   <Input type="password" placeholder="••••••••" className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-xs h-10" />
                 </div>
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs h-9 mt-2">
+                <Button onClick={handleComingSoon} className="bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs h-9 mt-2">
                   Update Password
                 </Button>
               </div>

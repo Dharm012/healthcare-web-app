@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import { toast } from '@/components/ui/toast';
+
 const activePrescriptions = [
   {
     id: 1,
@@ -57,6 +59,8 @@ const pastPrescriptions = [
 ];
 
 function PrescriptionCard({ rx, showActions = true }: { rx: typeof activePrescriptions[0]; showActions?: boolean }) {
+  const handleComingSoon = () => toast.add({ title: 'Coming Soon', description: 'This feature will be available soon.', type: 'info' });
+
   return (
     <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs rounded-2xl overflow-hidden text-left">
       <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40">
@@ -68,10 +72,10 @@ function PrescriptionCard({ rx, showActions = true }: { rx: typeof activePrescri
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="icon" className="h-8 w-8 border-slate-200 dark:border-slate-700">
+            <Button onClick={handleComingSoon} variant="outline" size="icon" className="h-8 w-8 border-slate-200 dark:border-slate-700">
               <Eye className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8 border-slate-200 dark:border-slate-700">
+            <Button onClick={handleComingSoon} variant="outline" size="icon" className="h-8 w-8 border-slate-200 dark:border-slate-700">
               <Download className="h-4 w-4" />
             </Button>
           </div>

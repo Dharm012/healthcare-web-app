@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
+import { toast } from '@/components/ui/toast';
+
 const registrationData = [
   { day: 'Mon', patients: 24, doctors: 3 },
   { day: 'Tue', patients: 31, doctors: 5 },
@@ -40,6 +42,8 @@ const auditLogs = [
 ];
 
 export default function AdminDashboard() {
+  const handleComingSoon = () => toast.add({ title: 'Coming Soon', description: 'This feature will be available soon.', type: 'info' });
+
   return (
     <div className="space-y-6">
       
@@ -135,10 +139,10 @@ export default function AdminDashboard() {
                   <p className="text-[10px] text-gray-400 mt-0.5">{doc.submittedAt}</p>
                 </div>
                 <div className="flex gap-1.5">
-                  <Button size="icon" variant="outline" className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700">
+                  <Button onClick={handleComingSoon} size="icon" variant="outline" className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700">
                     <CheckCircle className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="outline" className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600">
+                  <Button onClick={handleComingSoon} size="icon" variant="outline" className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600">
                     <XCircle className="h-4 w-4" />
                   </Button>
                 </div>

@@ -8,7 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import { toast } from '@/components/ui/toast';
+
 export default function AdminSettingsPage() {
+  const handleComingSoon = () => toast.add({ title: 'Coming Soon', description: 'This feature will be available soon.', type: 'info' });
+
   return (
     <div className="space-y-6">
       <div>
@@ -67,7 +71,7 @@ export default function AdminSettingsPage() {
                   defaultValue="Intelligent healthcare platform connecting patients, doctors, and administrators."
                 />
               </div>
-              <Button className="bg-indigo-600 hover:bg-indigo-700">
+              <Button onClick={handleComingSoon} className="bg-indigo-600 hover:bg-indigo-700">
                 <Save className="h-4 w-4 mr-2" /> Save Settings
               </Button>
             </CardContent>
@@ -141,7 +145,7 @@ export default function AdminSettingsPage() {
                 <Label>API Secret (Live)</Label>
                 <Input type="password" value="••••••••••••••••••••••••" readOnly />
               </div>
-              <Button className="bg-indigo-600 hover:bg-indigo-700">
+              <Button onClick={handleComingSoon} className="bg-indigo-600 hover:bg-indigo-700">
                 <Save className="h-4 w-4 mr-2" /> Update Keys
               </Button>
             </CardContent>

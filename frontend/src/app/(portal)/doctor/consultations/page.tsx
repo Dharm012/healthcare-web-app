@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
+import { toast } from '@/components/ui/toast';
 
 export default function DoctorConsultationsPage() {
   const queryClient = useQueryClient();
@@ -65,7 +66,7 @@ export default function DoctorConsultationsPage() {
       queryClient.invalidateQueries({ queryKey: ['appointments', 'doctor', 'patients'] });
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || 'Failed to accept appointment.');
+      toast.add({ title: 'Error', description: err.response?.data?.message || 'Failed to accept appointment.', type: 'error' });
     } finally {
       setActionLoadingId(null);
     }
@@ -73,20 +74,20 @@ export default function DoctorConsultationsPage() {
 
   const handleReject = async (id: string) => {
     if (!rejectionReason.trim()) {
-      alert('Please state a reason for declining this request.');
+      toast.add({ title: 'Error', description: 'Please state a reason for declining this request.', type: 'error' });
       return;
     }
     try {
       setActionLoadingId(id);
       await api.patch(`/api/appointments/${id}/reject`, {
-        reason: rejectionReason,
+        rejectionReason: rejectionReason,
       });
       queryClient.invalidateQueries({ queryKey: ['appointments', 'doctor'] });
       setRejectingId(null);
       setRejectionReason('');
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || 'Failed to decline appointment.');
+      toast.add({ title: 'Error', description: err.response?.data?.message || 'Failed to decline appointment.', type: 'error' });
     } finally {
       setActionLoadingId(null);
     }

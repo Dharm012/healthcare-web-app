@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from '@/components/ui/toast';
 
 const recentPrescriptions = [
   {
@@ -41,6 +42,8 @@ const recentPrescriptions = [
 export default function DoctorPrescriptionsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleComingSoon = () => toast.add({ title: 'Coming Soon', description: 'This feature will be available soon.', type: 'info' });
 
   const filtered = recentPrescriptions.filter(rx =>
     rx.patient.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -142,7 +145,7 @@ export default function DoctorPrescriptionsPage() {
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-[11px] text-slate-400">Issued on {rx.date}</p>
-                  <Button size="sm" variant="outline" className="mt-2 text-xs h-8 border-slate-200 dark:border-slate-700">
+                  <Button onClick={handleComingSoon} size="sm" variant="outline" className="mt-2 text-xs h-8 border-slate-200 dark:border-slate-700">
                     View Full Rx
                   </Button>
                 </div>

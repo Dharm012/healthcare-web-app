@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import api from '@/lib/api';
+import { toast } from '@/components/ui/toast';
 
 const SPECIALIZATIONS = [
   "General Physician",
@@ -122,7 +123,7 @@ function RegisterContent() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      alert('Please upload a valid image file (PNG, JPG, or WebP).');
+      toast.add({ title: 'Error', description: 'Please upload a valid image file (PNG, JPG, or WebP).', type: 'error' });
       return;
     }
     const reader = new FileReader();
@@ -151,11 +152,11 @@ function RegisterContent() {
   // Trigger AI Certificate Verification
   const handleVerifyWithAi = async () => {
     if (!doctorData.fullName.trim()) {
-      alert('Please enter your Legal Doctor Full Name first.');
+      toast.add({ title: 'Error', description: 'Please enter your Legal Doctor Full Name first.', type: 'error' });
       return;
     }
     if (!certFile) {
-      alert('Please upload your Medical Certificate or License document first.');
+      toast.add({ title: 'Error', description: 'Please upload your Medical Certificate or License document first.', type: 'error' });
       return;
     }
 
@@ -180,7 +181,7 @@ function RegisterContent() {
       }
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || 'AI Verification encountered an issue. Please try again.');
+      toast.add({ title: 'Error', description: err.response?.data?.message || 'AI Verification encountered an issue. Please try again.', type: 'error' });
     } finally {
       setIsVerifyingAi(false);
     }
@@ -190,11 +191,11 @@ function RegisterContent() {
   const handlePatientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!patientData.fullName.trim() || !patientData.email.trim() || !patientData.password.trim() || !patientData.phone.trim() || !patientData.dateOfBirth.trim() || !patientData.emergencyContact.trim()) {
-      alert('Please complete all required personal and emergency contact fields.');
+      toast.add({ title: 'Error', description: 'Please complete all required personal and emergency contact fields.', type: 'error' });
       return;
     }
     if (patientData.password.length < 8) {
-      alert('Password must be at least 8 characters long.');
+      toast.add({ title: 'Error', description: 'Password must be at least 8 characters long.', type: 'error' });
       return;
     }
 
@@ -218,7 +219,7 @@ function RegisterContent() {
       window.location.href = '/patient/dashboard';
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || 'Registration failed. Please check your inputs.');
+      toast.add({ title: 'Error', description: err.response?.data?.message || 'Registration failed. Please check your inputs.', type: 'error' });
       setIsPatientSubmitting(false);
     }
   };
@@ -227,15 +228,15 @@ function RegisterContent() {
   const handleDoctorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!doctorData.fullName.trim() || !doctorData.email.trim() || !doctorData.password.trim() || !doctorData.phone.trim() || !doctorData.licenseNumber.trim() || !doctorData.bio.trim()) {
-      alert('Please complete all personal credentials, medical license, and clinical bio fields.');
+      toast.add({ title: 'Error', description: 'Please complete all personal credentials, medical license, and clinical bio fields.', type: 'error' });
       return;
     }
     if (doctorData.password.length < 8) {
-      alert('Password must be at least 8 characters long.');
+      toast.add({ title: 'Error', description: 'Password must be at least 8 characters long.', type: 'error' });
       return;
     }
     if (!aiResult || aiResult.verificationStatus !== 'APPROVED') {
-      alert('Please upload your Medical Certificate and run the AI Verification check before submitting.');
+      toast.add({ title: 'Error', description: 'Please upload your Medical Certificate and run the AI Verification check before submitting.', type: 'error' });
       return;
     }
 
@@ -270,7 +271,7 @@ function RegisterContent() {
       window.location.href = '/doctor/dashboard';
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || 'Doctor registration failed. Please verify your details.');
+      toast.add({ title: 'Error', description: err.response?.data?.message || 'Doctor registration failed. Please verify your details.', type: 'error' });
       setIsDoctorSubmitting(false);
     }
   };

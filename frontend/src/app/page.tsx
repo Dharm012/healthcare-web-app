@@ -19,6 +19,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Interactive3DBackground } from '@/components/Interactive3DBackground';
 import { ScrollReveal } from '@/components/ScrollReveal';
+import { toast } from '@/components/ui/toast';
+import api from '@/lib/api';
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -38,19 +40,8 @@ export default function LandingPage() {
   const onLoginSubmit = async (data: z.infer<typeof loginSchema>) => {
     setIsLoggingIn(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      
-      const result = await response.json();
-      
-      if (!response.ok) {
-        alert(result.message || 'Login failed. Please check your credentials.');
-        setIsLoggingIn(false);
-        return;
-      }
+      const response = await api.post('/api/auth/login', data);
+      const result = response.data;
 
       localStorage.setItem('accessToken', result.accessToken);
       localStorage.setItem('user', JSON.stringify(result.user));
@@ -62,9 +53,13 @@ export default function LandingPage() {
       else if (role === 'DOCTOR') window.location.href = '/doctor/dashboard';
       else window.location.href = '/patient/dashboard';
       
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('Network error. Please make sure the backend server is running.');
+      if (error.response) {
+        toast.add({ title: 'Error', description: error.response.data.message || 'Login failed. Please check your credentials.', type: 'error' });
+      } else {
+        toast.add({ title: 'Error', description: 'Network error. Please make sure the backend server is running.', type: 'error' });
+      }
       setIsLoggingIn(false);
     }
   };

@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
+import { toast } from '@/components/ui/toast';
+
 const usersList = [
   { id: 'USR-9821', name: 'John Doe', email: 'john@example.com', role: 'Patient', status: 'Active', joinedAt: 'Aug 10, 2026', avatar: 'JD' },
   { id: 'USR-9822', name: 'Dr. Sarah Jenkins', email: 'sarah.j@hospital.com', role: 'Doctor', status: 'Active', joinedAt: 'Aug 05, 2026', avatar: 'SJ' },
@@ -21,6 +23,8 @@ const usersList = [
 
 export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleComingSoon = () => toast.add({ title: 'Coming Soon', description: 'This feature will be available soon.', type: 'info' });
 
   const filtered = usersList.filter(u =>
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -35,7 +39,7 @@ export default function AdminUsersPage() {
           <h2 className="text-2xl font-bold tracking-tight">User Management</h2>
           <p className="text-gray-500">Manage all platform users, roles, and access levels.</p>
         </div>
-        <Button className="bg-indigo-600 hover:bg-indigo-700">
+        <Button onClick={handleComingSoon} className="bg-indigo-600 hover:bg-indigo-700">
           <UserPlus className="h-4 w-4 mr-2" /> Add User
         </Button>
       </div>
@@ -116,16 +120,16 @@ export default function AdminUsersPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleComingSoon}>
                             <Edit2 className="h-4 w-4 mr-2 text-gray-500" /> Edit User
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleComingSoon}>
                             <Mail className="h-4 w-4 mr-2 text-gray-500" /> Send Email
                           </DropdownMenuItem>
                           {user.role !== 'Admin' && (
                             <>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-amber-600 focus:bg-amber-50 focus:text-amber-700">
+                              <DropdownMenuItem onClick={handleComingSoon} className="text-amber-600 focus:bg-amber-50 focus:text-amber-700">
                                 <Ban className="h-4 w-4 mr-2" /> Suspend User
                               </DropdownMenuItem>
                             </>

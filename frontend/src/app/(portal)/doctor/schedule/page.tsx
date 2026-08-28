@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import { toast } from '@/components/ui/toast';
+
 const weeklySlots = [
   { day: 'Monday', slots: ['09:00 - 12:00', '14:00 - 17:00'], status: 'active' },
   { day: 'Tuesday', slots: ['09:00 - 12:00', '14:00 - 17:00'], status: 'active' },
@@ -29,6 +31,8 @@ const todaySchedule = [
 ];
 
 export default function DoctorSchedulePage() {
+  const handleComingSoon = () => toast.add({ title: 'Coming Soon', description: 'This feature will be available soon.', type: 'info' });
+
   return (
     <div className="space-y-6 text-slate-900 dark:text-slate-100">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
@@ -36,7 +40,7 @@ export default function DoctorSchedulePage() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Schedule &amp; Availability</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage your consultation slots, telehealth hours, and daily calendar.</p>
         </div>
-        <Button className="bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs h-9 shadow-xs cursor-pointer">
+        <Button onClick={handleComingSoon} className="bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs h-9 shadow-xs cursor-pointer">
           <Plus className="h-4 w-4 mr-1.5" /> Add Time Slot
         </Button>
       </div>

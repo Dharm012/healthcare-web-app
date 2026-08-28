@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
+import { toast } from '@/components/ui/toast';
 
 export default function AppointmentsPage() {
   const queryClient = useQueryClient();
@@ -58,7 +59,7 @@ export default function AppointmentsPage() {
       setCancelReason('');
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || 'Failed to cancel appointment.');
+      toast.add({ title: 'Error', description: err.response?.data?.message || 'Failed to cancel appointment.', type: 'error' });
     } finally {
       setActionLoadingId(null);
     }

@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import { toast } from '@/components/ui/toast';
+
 const heartRateData = [
   { time: '6AM', value: 62 }, { time: '8AM', value: 68 }, { time: '10AM', value: 75 },
   { time: '12PM', value: 72 }, { time: '2PM', value: 80 }, { time: '4PM', value: 76 },
@@ -44,6 +46,8 @@ const glucoseData = [
 ];
 
 export default function HealthTrackingPage() {
+  const handleComingSoon = () => toast.add({ title: 'Coming Soon', description: 'This feature will be available soon.', type: 'info' });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -51,7 +55,7 @@ export default function HealthTrackingPage() {
           <h2 className="text-2xl font-bold tracking-tight">Health Tracking</h2>
           <p className="text-gray-500">Monitor your vitals and health trends over time.</p>
         </div>
-        <Button className="bg-teal-600 hover:bg-teal-700">
+        <Button onClick={handleComingSoon} className="bg-teal-600 hover:bg-teal-700">
           <Plus className="h-4 w-4 mr-2" /> Log Vitals
         </Button>
       </div>

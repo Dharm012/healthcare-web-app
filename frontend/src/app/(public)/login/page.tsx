@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { toast } from '@/components/ui/toast';
+import api from '@/lib/api';
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -46,19 +48,8 @@ export default function LoginPage() {
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      
-      const result = await response.json();
-      
-      if (!response.ok) {
-        alert(result.message || 'Login failed. Please check your credentials.');
-        setIsLoading(false);
-        return;
-      }
+      const response = await api.post('/api/auth/login', data);
+      const result = response.data;
 
       // Store credentials
       localStorage.setItem('accessToken', result.accessToken);
@@ -73,9 +64,13 @@ export default function LoginPage() {
       else if (userRole === 'DOCTOR') window.location.href = '/doctor/dashboard';
       else window.location.href = '/patient/dashboard';
       
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('Network error. Please make sure the backend server is running.');
+      if (error.response) {
+        toast.add({ title: 'Error', description: error.response.data.message || 'Login failed. Please check your credentials.', type: 'error' });
+      } else {
+        toast.add({ title: 'Error', description: 'Network error. Please make sure the backend server is running.', type: 'error' });
+      }
       setIsLoading(false);
     }
   };
