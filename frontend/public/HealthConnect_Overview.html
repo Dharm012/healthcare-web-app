@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthConnect - Problem, Solution & Benefits Overview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      body {
+        background: white;
+        color: black;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .page-break {
+        page-break-before: always;
+        break-before: page;
+      }
+      .page-container {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 24px !important;
+        max-width: 100% !important;
+        border: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased p-4 sm:p-8 flex flex-col items-center">
+
+  <!-- Top Floating Action Bar -->
+  <div class="no-print w-full max-w-4xl mb-6 flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+    <div>
+      <h1 class="text-sm font-bold text-slate-900">HealthConnect 2-Page Executive Overview</h1>
+      <p class="text-xs text-slate-500">Problem Statement, Built Solution & Real-World Value</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="/HealthConnect_Problem_Solution_Benefits.pdf" download class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300 transition-all">
+        📥 Download PDF File
+      </a>
+      <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer">
+        🖨️ Print / Save as PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- PAGE 1 CONTAINER -->
+  <div class="page-container w-full max-w-4xl bg-white rounded-3xl shadow-md border border-slate-200 p-8 sm:p-10 mb-8 space-y-5 text-left">
+    
+    <!-- Running Header -->
+    <div class="flex items-center justify-between border-b-2 border-teal-600 pb-2.5 text-[11px] font-semibold text-teal-800">
+      <span>HEALTHCONNECT TELEHEALTH PLATFORM</span>
+      <span class="text-slate-500 font-normal">Project Solution &amp; Benefits Overview • Page 1 of 2</span>
+    </div>
+
+    <!-- Title & Subtitle -->
+    <div>
+      <h1 class="text-2xl font-extrabold text-teal-800 tracking-tight">HealthConnect: Smart Telehealth &amp; Medicine Prescription System</h1>
+      <p class="text-xs text-slate-600 mt-1 font-medium">Solving Telemedicine Gaps with Real-Time Video Prescribing, Auto-Schedules &amp; Daily Reminders</p>
+    </div>
+
+    <!-- Executive Summary Banner -->
+    <div class="p-4 rounded-2xl bg-teal-50/80 border border-teal-200 text-xs text-slate-700 leading-relaxed">
+      <strong>Executive Summary:</strong> HealthConnect is a modern digital health platform that combines encrypted HD video consultations with an in-call medicine prescription builder and an automated daily reminder system. It ensures patients never miss their medicine doses while allowing doctors to issue digitally signed prescriptions in seconds.
+    </div>
+
+    <!-- Section 1: Problem Statement -->
+    <div class="space-y-3">
+      <h2 class="text-sm font-bold text-teal-800 uppercase tracking-wider flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-red-500"></span> 1. The Problem Statement (What Was Wrong Before?)
+      </h2>
+      <p class="text-xs text-slate-600">Online doctor consultations have grown rapidly, but traditional telemedicine tools suffer from critical disconnects between the live video call, prescription writing, and actual patient recovery:</p>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div class="p-4 rounded-2xl bg-red-50/60 border border-red-200 space-y-1">
+          <h3 class="text-xs font-bold text-red-900">1. Disconnected Prescriptions</h3>
+          <p class="text-[11px] text-slate-600 leading-normal">Doctors usually had to leave the video call or use separate paper notes to write prescriptions. This wastes time, causes errors, and delays treatment.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-red-50/60 border border-red-200 space-y-1">
+          <h3 class="text-xs font-bold text-red-900">2. High Medication Non-Adherence</h3>
+          <p class="text-[11px] text-slate-600 leading-normal">Over <strong>50% of patients forget their dosage timings</strong> or stop taking medications early once symptoms fade, causing health relapses and hospital readmissions.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-red-50/60 border border-red-200 space-y-1">
+          <h3 class="text-xs font-bold text-red-900">3. Zero Tracking for Doctors</h3>
+          <p class="text-[11px] text-slate-600 leading-normal">Doctors had no visibility into whether patients took their medicines on time, skipped doses, or experienced side effects after the call ended.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-red-50/60 border border-red-200 space-y-1">
+          <h3 class="text-xs font-bold text-red-900">4. Technical Video &amp; Chat Glitches</h3>
+          <p class="text-[11px] text-slate-600 leading-normal">Common video consultation tools suffer from black video screens during connection, dropped candidates, and duplicate chat message bugs that confuse patients.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Our Solution -->
+    <div class="space-y-3 pt-2">
+      <h2 class="text-sm font-bold text-teal-800 uppercase tracking-wider flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-teal-500"></span> 2. Our Solution (What We Built to Solve These Problems)
+      </h2>
+      <p class="text-xs text-slate-600">We built an integrated end-to-end medical solution directly into the video consultation room and portal dashboards:</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-1">
+          <h3 class="text-xs font-bold text-teal-900 flex items-center gap-1.5">💊 In-Call Live Medicine Prescribing</h3>
+          <p class="text-[11px] text-slate-600 leading-normal">Doctors prescribe medicines directly inside the video room without leaving the patient. Includes quick autocomplete, multi-time chips (Morning, Afternoon, Night), duration counters, and continuous autosave.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-1">
+          <h3 class="text-xs font-bold text-teal-900 flex items-center gap-1.5">📅 Automated Reminder Schedule Engine</h3>
+          <p class="text-[11px] text-slate-600 leading-normal">When the call finishes, our background engine automatically calculates Start Date + Duration and creates daily scheduled dose entries in the database for every single time slot across all days.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-1">
+          <h3 class="text-xs font-bold text-teal-900 flex items-center gap-1.5">✅ Interactive Patient Adherence Tracker</h3>
+          <p class="text-[11px] text-slate-600 leading-normal">Patients see today's pending medicines on their dashboard with exact timings, food instructions, and day progress ("Day 1 of 5"). They can click <strong>"Mark as Taken"</strong> or <strong>"Skip with Reason"</strong> with 1 tap.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-1">
+          <h3 class="text-xs font-bold text-teal-900 flex items-center gap-1.5">🔒 Ultra-Reliable HD Video &amp; Single-Instance Chat</h3>
+          <p class="text-[11px] text-slate-600 leading-normal">Fixed WebRTC ICE candidate dropping for instant video feeds with zero black screens, plus message deduplication so in-call chats and shared prescriptions never appear twice.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Page 1 -->
+    <div class="pt-3 border-t border-slate-200 flex justify-between text-[10px] text-slate-400">
+      <span>Confidential • Prepared for Healthcare Telemedicine Operations</span>
+      <span>Page 1 of 2</span>
+    </div>
+  </div>
+
+  <!-- PAGE BREAK FOR PRINT -->
+  <div class="page-break"></div>
+
+  <!-- PAGE 2 CONTAINER -->
+  <div class="page-container w-full max-w-4xl bg-white rounded-3xl shadow-md border border-slate-200 p-8 sm:p-10 space-y-5 text-left">
+    
+    <!-- Running Header -->
+    <div class="flex items-center justify-between border-b-2 border-teal-600 pb-2.5 text-[11px] font-semibold text-teal-800">
+      <span>HEALTHCONNECT TELEHEALTH PLATFORM</span>
+      <span class="text-slate-500 font-normal">Project Solution &amp; Benefits Overview • Page 2 of 2</span>
+    </div>
+
+    <!-- Section 3: How It Works -->
+    <div class="space-y-3">
+      <h2 class="text-sm font-bold text-teal-800 uppercase tracking-wider flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-blue-500"></span> 3. How It Works (Step-by-Step Patient &amp; Doctor Journey)
+      </h2>
+      
+      <div class="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100 text-xs">
+        <div class="p-3 bg-slate-50 flex items-start gap-3">
+          <span class="font-bold text-teal-700 w-14 shrink-0">Step 1</span>
+          <div><strong>Secure Video Consultation:</strong> Doctor and patient join the encrypted video room with synchronized audio/video and in-call messaging.</div>
+        </div>
+        <div class="p-3 bg-white flex items-start gap-3">
+          <span class="font-bold text-teal-700 w-14 shrink-0">Step 2</span>
+          <div><strong>Real-Time Medicine Drafting:</strong> Doctor switches to 'Medicines' tab, types diagnosis, selects medications, picks daily time chips (e.g., 08:00 AM &amp; 08:00 PM), and sets 5 days duration. Draft autosaves instantly.</div>
+        </div>
+        <div class="p-3 bg-slate-50 flex items-start gap-3">
+          <span class="font-bold text-teal-700 w-14 shrink-0">Step 3</span>
+          <div><strong>Review &amp; Finalize Rx:</strong> Doctor clicks 'Finalize Prescription'. The prescription locks, and can be shared directly into the chat for live patient confirmation.</div>
+        </div>
+        <div class="p-3 bg-white flex items-start gap-3">
+          <span class="font-bold text-teal-700 w-14 shrink-0">Step 4</span>
+          <div><strong>Automatic Schedule Generation:</strong> When consultation ends, our backend automatically generates individual daily dose records in the database for all 5 days.</div>
+        </div>
+        <div class="p-3 bg-slate-50 flex items-start gap-3">
+          <span class="font-bold text-teal-700 w-14 shrink-0">Step 5</span>
+          <div><strong>Daily Reminders &amp; Compliance:</strong> Patient logs into dashboard, sees today's doses, marks 'Taken' (logs timestamp) or 'Skipped' (records reason), and prints official Rx.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Why It Is Beneficial -->
+    <div class="space-y-3 pt-2">
+      <h2 class="text-sm font-bold text-teal-800 uppercase tracking-wider flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 4. Why It Is Beneficial (Impact &amp; Real-World Value)
+      </h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Patient Benefits -->
+        <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-2">
+          <h3 class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">👤 Benefits for Patients</h3>
+          <ul class="text-[11px] text-slate-700 space-y-1.5 list-disc list-inside">
+            <li><strong>Never Miss a Dose:</strong> Clear daily schedule shows exactly what pill to take at what time.</li>
+            <li><strong>Zero Confusion:</strong> Includes clear meal instructions (e.g. <em>"Take after food with warm water"</em>).</li>
+            <li><strong>100% Digital &amp; Paperless:</strong> Access official printable prescriptions anytime from any device.</li>
+            <li><strong>Better Health Outcomes:</strong> High medication adherence ensures fast and complete recovery.</li>
+          </ul>
+        </div>
+
+        <!-- Doctor Benefits -->
+        <div class="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-2">
+          <h3 class="text-xs font-bold text-blue-950 flex items-center gap-1.5">👨‍⚕️ Benefits for Doctors</h3>
+          <ul class="text-[11px] text-slate-700 space-y-1.5 list-disc list-inside">
+            <li><strong>Speed &amp; Efficiency:</strong> Create complete prescriptions in under 30 seconds inside video call.</li>
+            <li><strong>Safety Safeguards:</strong> Unfinished draft modal alerts doctor before closing call accidentally.</li>
+            <li><strong>Patient Adherence History:</strong> View full logs of taken and skipped doses during follow-ups.</li>
+            <li><strong>Standardized Digital Records:</strong> Auto-formatted with MCI registration license &amp; hospital headers.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: Comparison Table -->
+    <div class="space-y-2 pt-2">
+      <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider">5. Platform Comparison Table</h2>
+      
+      <div class="border border-slate-200 rounded-2xl overflow-hidden text-xs">
+        <table class="w-full text-left">
+          <thead class="bg-slate-100 font-bold text-slate-700 border-b border-slate-200">
+            <tr>
+              <th class="p-2.5">Metric / Area</th>
+              <th class="p-2.5">Before HealthConnect</th>
+              <th class="p-2.5 text-teal-800">With HealthConnect System</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-[11px] text-slate-600">
+            <tr>
+              <td class="p-2.5 font-semibold text-slate-800">Prescription Process</td>
+              <td class="p-2.5">Manual, slow, outside video call</td>
+              <td class="p-2.5 font-bold text-teal-700">Instant in-call digital Rx with autosave</td>
+            </tr>
+            <tr class="bg-slate-50/50">
+              <td class="p-2.5 font-semibold text-slate-800">Medication Adherence</td>
+              <td class="p-2.5">~50% patients forget or drop doses</td>
+              <td class="p-2.5 font-bold text-teal-700">Automated daily schedule &amp; compliance tracking</td>
+            </tr>
+            <tr>
+              <td class="p-2.5 font-semibold text-slate-800">Telehealth Reliability</td>
+              <td class="p-2.5">Video black screens &amp; duplicate chat</td>
+              <td class="p-2.5 font-bold text-teal-700">Seamless WebRTC STUN/ICE &amp; deduped chat</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Conclusion Box -->
+    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed">
+      <strong>Conclusion:</strong> By eliminating the barrier between remote medical consultation and medication compliance, HealthConnect delivers a connected, paperless, and life-saving telemedicine experience for both patients and healthcare providers.
+    </div>
+
+    <!-- Footer Page 2 -->
+    <div class="pt-3 border-t border-slate-200 flex justify-between text-[10px] text-slate-400">
+      <span>Confidential • Prepared for Healthcare Telemedicine Operations</span>
+      <span>Page 2 of 2</span>
+    </div>
+  </div>
+
+</body>
+</html>

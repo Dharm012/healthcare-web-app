@@ -21,10 +21,18 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
   const [showBellDropdown, setShowBellDropdown] = useState<boolean>(false);
   const [patientName, setPatientName] = useState<string>("Patient");
   const [patientId, setPatientId] = useState<string>("HC-98214");
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
 
   // Load individual registered patient name and account details
   useEffect(() => {
     try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        window.location.href = "/login";
+        return;
+      }
+      setIsAuthorized(true);
+
       const storedName = localStorage.getItem("userName");
       const storedUser = localStorage.getItem("user");
       if (storedName && storedName.trim()) {
@@ -126,6 +134,14 @@ export default function PatientLayout({ children }: { children: React.ReactNode 
       ]
     }
   ];
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-300 text-sm">
+        Verifying patient authorization...
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-[#05080d] text-slate-900 dark:text-slate-100 transition-colors">

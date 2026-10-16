@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { RecordType } from '@prisma/client';
+import { UploadRecordDto } from './dto/upload-record.dto';
 
 @Injectable()
 export class MedicalRecordsService {
@@ -21,7 +21,7 @@ export class MedicalRecordsService {
     });
   }
 
-  async uploadRecord(userId: string, data: any) {
+  async uploadRecord(userId: string, dto: UploadRecordDto) {
     const patientProfile = await this.prisma.patientProfile.findUnique({
       where: { userId },
     });
@@ -33,9 +33,9 @@ export class MedicalRecordsService {
     return this.prisma.medicalRecord.create({
       data: {
         patientId: patientProfile.id,
-        type: data.type as RecordType,
-        title: data.title,
-        description: data.description,
+        type: dto.type,
+        title: dto.title.trim(),
+        description: dto.description?.trim(),
         source: 'UPLOADED',
       },
     });

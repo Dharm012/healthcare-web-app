@@ -56,7 +56,7 @@ export class AuthService {
           userId: user.id,
           fullName: formattedName,
           specialization: dto.specialization || 'General Physician',
-          licenseNumber: dto.licenseNumber || `MCI-${Math.floor(10000 + Math.random() * 90000)}`,
+          licenseNumber: dto.licenseNumber?.trim() || null,
           experience: dto.experience ? Number(dto.experience) : 5,
           consultationFee: dto.consultationFee ? Number(dto.consultationFee) : 600,
           qualifications: dto.qualifications || 'MBBS, MD',
@@ -64,7 +64,7 @@ export class AuthService {
           bio: dto.bio || 'Experienced medical professional committed to evidence-based clinical care and virtual consultations.',
           profilePhoto: dto.profilePhoto || null,
           certificateUrl: dto.certificateUrl || null,
-          verificationStatus: 'APPROVED', // Verified by AI
+          verificationStatus: 'PENDING', // Default to PENDING verification for review
         },
       });
     }
@@ -99,6 +99,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials.');
     }
 
+    if (user.status !== 'ACTIVE') {
+      throw new UnauthorizedException('Your account has been deactivated or suspended. Please contact support.');
+    }
+
     const passwordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!passwordValid) {
       throw new UnauthorizedException('Invalid credentials.');
@@ -131,9 +135,14 @@ export class AuthService {
   }
 
   async validateUser(userId: string) {
-    return this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, email: true, role: true, status: true },
     });
+
+    if (!user || user.status !== 'ACTIVE') {
+      return null;
+    }
+    return user;
   }
 }

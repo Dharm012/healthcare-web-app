@@ -86,13 +86,28 @@ export default function DoctorLayout({
   const [doctorName, setDoctorName] = useState<string>("Doctor");
   const [doctorSpecialty, setDoctorSpecialty] = useState<string>("General Physician");
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
     try {
+      const token = localStorage.getItem("accessToken");
+      const role = localStorage.getItem("userRole");
+
+      if (!token) {
+        window.location.href = "/login";
+        return;
+      }
+
+      if (role !== "DOCTOR" && role !== "ADMIN") {
+        window.location.href = "/patient/dashboard";
+        return;
+      }
+
+      setIsAuthorized(true);
+      setCurrentUserRole(role);
+
       const storedName = localStorage.getItem("userName");
       const stored = localStorage.getItem("user");
-      const role = localStorage.getItem("userRole");
-      setCurrentUserRole(role);
 
       if (storedName && storedName.trim()) {
         setDoctorName(storedName);
@@ -107,6 +122,14 @@ export default function DoctorLayout({
       }
     } catch {}
   }, []);
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center text-slate-500 text-sm">
+        Verifying doctor authorization...
+      </div>
+    );
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");

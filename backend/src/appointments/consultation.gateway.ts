@@ -9,10 +9,19 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Injectable, Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../prisma/prisma.service';
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1') || origin.includes('vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
+    credentials: true,
   },
 })
 @Injectable()
@@ -22,8 +31,23 @@ export class ConsultationGateway implements OnGatewayConnection, OnGatewayDiscon
 
   private readonly logger = new Logger(ConsultationGateway.name);
 
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
+  ) {}
+
   handleConnection(client: Socket) {
-    this.logger.log(`Consultation client connected: ${client.id}`);
+    try {
+      const token = client.handshake.auth?.token || client.handshake.headers?.authorization?.replace('Bearer ', '');
+      if (token) {
+        const payload = this.jwtService.verify(token);
+        client.data.user = payload;
+        this.logger.log(`Authenticated consultation client connected: ${client.id} (user: ${payload.sub})`);
+        return;
+      }
+    } catch {
+      this.logger.warn(`Unauthenticated consultation socket connected: ${client.id}`);
+    }
   }
 
   handleDisconnect(client: Socket) {
@@ -32,19 +56,51 @@ export class ConsultationGateway implements OnGatewayConnection, OnGatewayDiscon
   }
 
   @SubscribeMessage('join-room')
-  handleJoinRoom(
+  async handleJoinRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { roomId: string; userId?: string; role?: string; name?: string },
   ) {
     const { roomId, role, name } = payload;
+    const user = client.data.user;
+
+    // Verify room authorization if user is authenticated or verify appointment exists
+    if (user && user.sub) {
+      try {
+        const appointment = await this.prisma.appointment.findFirst({
+          where: {
+            OR: [{ videoRoomId: roomId }, { id: roomId }],
+          },
+          include: {
+            patient: true,
+            doctor: true,
+          },
+        });
+
+        if (appointment) {
+          const isParticipant = 
+            appointment.patient?.userId === user.sub || 
+            appointment.doctor?.userId === user.sub || 
+            user.role === 'ADMIN';
+
+          if (!isParticipant) {
+            this.logger.warn(`User ${user.sub} attempted unauthorized access to room ${roomId}`);
+            client.emit('error', { message: 'Unauthorized room access' });
+            return { event: 'error', data: { message: 'Unauthorized room access' } };
+          }
+        }
+      } catch (err) {
+        this.logger.error(`Error verifying room authorization: ${err.message}`);
+      }
+    }
+
     client.join(roomId);
-    this.logger.log(`Socket ${client.id} (${name || role}) joined room ${roomId}`);
+    this.logger.log(`Socket ${client.id} (${name || role || 'User'}) joined room ${roomId}`);
 
     // Notify other peers in the room that a new user has joined
     client.to(roomId).emit('user-joined', {
       socketId: client.id,
-      role,
-      name,
+      role: user?.role || role,
+      name: name || user?.email,
     });
 
     return { event: 'room-joined', data: { roomId, socketId: client.id } };
@@ -89,7 +145,7 @@ export class ConsultationGateway implements OnGatewayConnection, OnGatewayDiscon
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { roomId: string; sender: string; text: string; time: string; type?: string; metadata?: any },
   ) {
-    this.server.to(payload.roomId).emit('in-call-message', payload);
+    client.to(payload.roomId).emit('in-call-message', payload);
   }
 
   @SubscribeMessage('prescription-sync')

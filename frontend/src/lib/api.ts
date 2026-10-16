@@ -39,13 +39,14 @@ api.interceptors.response.use(
       // api.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
       // return api(originalRequest);
       
-      // If unauthorized, clear auth state and redirect to login
       if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
         localStorage.removeItem('userName');
         localStorage.removeItem('userRole');
         localStorage.removeItem('userEmail');
+        document.cookie = "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        document.cookie = "userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         window.location.href = '/login';
       }
     }

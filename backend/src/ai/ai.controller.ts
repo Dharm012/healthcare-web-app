@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
 import { AiService } from './ai.service';
 import { VerifyCertificateDto } from './dto/verify-certificate.dto';
 
@@ -8,6 +8,12 @@ export class AiController {
 
   @Post('symptom-check')
   async checkSymptoms(@Body('history') history: { role: string; content: string }[]) {
+    if (!history || !Array.isArray(history) || history.length === 0) {
+      throw new BadRequestException('A valid conversation history array is required.');
+    }
+    if (history.length > 50) {
+      throw new BadRequestException('Conversation history exceeds maximum permitted limit (50 messages).');
+    }
     return this.aiService.analyzeSymptoms(history);
   }
 

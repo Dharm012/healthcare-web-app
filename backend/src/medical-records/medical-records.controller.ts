@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { MedicalRecordsService } from './medical-records.service';
+import { UploadRecordDto } from './dto/upload-record.dto';
 
 @Controller('api/medical-records')
 @UseGuards(AuthGuard('jwt'))
@@ -13,7 +14,7 @@ export class MedicalRecordsController {
   }
 
   @Post('upload')
-  async uploadRecord(@Request() req: any, @Body() data: any) {
-    return this.recordsService.uploadRecord(req.user.id, data);
+  async uploadRecord(@Request() req: any, @Body() dto: UploadRecordDto) {
+    return this.recordsService.uploadRecord(req.user.id, dto);
   }
 }

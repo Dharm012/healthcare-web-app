@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
@@ -20,13 +21,28 @@ async function bootstrap() {
   app.use(urlencoded({ limit: '15mb', extended: true }));
 
   // 3. Strict CORS Configuration
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://healthcare-web-app-tau.vercel.app',
+    ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()) : []),
+  ];
+
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      // Allow local development and LAN frontend testing
-      if (!origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1') || origin.startsWith('http://192.168.')) {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server) or from whitelisted origins
+      if (!origin) {
+        return callback(null, true);
+      }
+      const isAllowed = allowedOrigins.some(allowed => 
+        origin === allowed || 
+        origin.startsWith('http://localhost:') || 
+        origin.startsWith('http://127.0.0.1:')
+      );
+      if (isAllowed) {
         callback(null, true);
       } else {
-        callback(null, true);
+        callback(new Error(`Blocked by CORS policy: Origin ${origin} is not allowed.`));
       }
     },
     credentials: true,

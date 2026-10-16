@@ -7,10 +7,18 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Injectable, Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({
   cors: {
-    origin: '*', // For development
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1') || origin.includes('vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
+    credentials: true,
   },
 })
 @Injectable()
@@ -23,8 +31,21 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   // Basic user tracking: userId -> socketId
   private connectedUsers = new Map<string, string>();
 
+  constructor(private readonly jwtService: JwtService) {}
+
   handleConnection(client: Socket) {
-    this.logger.log(`Client connected: ${client.id}`);
+    try {
+      const token = client.handshake.auth?.token || client.handshake.headers?.authorization?.replace('Bearer ', '');
+      if (token) {
+        const payload = this.jwtService.verify(token);
+        client.data.user = payload;
+        this.connectedUsers.set(payload.sub, client.id);
+        this.logger.log(`Authenticated notifications client connected: ${client.id} (user: ${payload.sub})`);
+        return;
+      }
+    } catch {
+      this.logger.warn(`Unauthenticated notifications connection attempt: ${client.id}`);
+    }
   }
 
   handleDisconnect(client: Socket) {
@@ -39,10 +60,14 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   @SubscribeMessage('register')
-  handleRegister(client: Socket, userId: string) {
-    this.logger.log(`User ${userId} registered with socket ${client.id}`);
-    this.connectedUsers.set(userId, client.id);
-    return { event: 'registered', data: { success: true } };
+  handleRegister(client: Socket) {
+    const user = client.data.user;
+    if (!user || !user.sub) {
+      return { event: 'registered', data: { success: false, message: 'Authentication required' } };
+    }
+    this.logger.log(`Verified user ${user.sub} registered with socket ${client.id}`);
+    this.connectedUsers.set(user.sub, client.id);
+    return { event: 'registered', data: { success: true, userId: user.sub } };
   }
 
   // Method to send notification to a specific user

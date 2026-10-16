@@ -51,15 +51,18 @@ export default function LoginPage() {
       const response = await api.post('/api/auth/login', data);
       const result = response.data;
 
+      const userRole = result.user?.role || 'PATIENT';
       // Store credentials
       localStorage.setItem('accessToken', result.accessToken);
       localStorage.setItem('user', JSON.stringify(result.user));
       localStorage.setItem('userName', result.user?.fullName || result.user?.name || '');
-      localStorage.setItem('userRole', result.user?.role || 'PATIENT');
+      localStorage.setItem('userRole', userRole);
       localStorage.setItem('userEmail', result.user?.email || '');
 
+      document.cookie = `accessToken=${result.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+      document.cookie = `userRole=${userRole}; path=/; max-age=604800; SameSite=Lax`;
+
       // Redirect based on role
-      const userRole = result.user?.role;
       if (userRole === 'ADMIN') window.location.href = '/admin/dashboard';
       else if (userRole === 'DOCTOR') window.location.href = '/doctor/dashboard';
       else window.location.href = '/patient/dashboard';

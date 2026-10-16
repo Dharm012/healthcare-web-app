@@ -20,4 +20,8 @@ export class VerifyCertificateDto {
   @IsOptional()
   @IsString()
   fileName?: string;
+
+  @IsOptional()
+  @IsString()
+  licenseNumber?: string;
 }

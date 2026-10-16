@@ -216,6 +216,9 @@ function RegisterContent() {
       localStorage.setItem('userRole', 'PATIENT');
       localStorage.setItem('userEmail', result.user?.email || patientData.email);
 
+      document.cookie = `accessToken=${result.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+      document.cookie = `userRole=PATIENT; path=/; max-age=604800; SameSite=Lax`;
+
       window.location.href = '/patient/dashboard';
     } catch (err: any) {
       console.error(err);
@@ -249,7 +252,7 @@ function RegisterContent() {
         phone: doctorData.phone.trim(),
         role: 'DOCTOR',
         specialization: doctorData.specialization,
-        licenseNumber: doctorData.licenseNumber || aiResult.extractedLicenseNumber || `MCI-${Math.floor(10000 + Math.random() * 90000)}`,
+        licenseNumber: doctorData.licenseNumber?.trim() || aiResult.extractedLicenseNumber || '',
         qualifications: doctorData.qualifications || aiResult.extractedQualification || 'MBBS, MD',
         experience: parseInt(doctorData.experience, 10) || 8,
         consultationFee: parseFloat(doctorData.consultationFee) || 600,
@@ -258,7 +261,6 @@ function RegisterContent() {
         bio: doctorData.bio,
         profilePhoto: doctorPhoto || null,
         certificateUrl: certFile?.name || null,
-        verificationStatus: 'APPROVED',
       });
 
       const result = response.data;
@@ -267,6 +269,9 @@ function RegisterContent() {
       localStorage.setItem('userName', result.user?.fullName || result.user?.name || doctorData.fullName);
       localStorage.setItem('userRole', 'DOCTOR');
       localStorage.setItem('userEmail', result.user?.email || doctorData.email);
+
+      document.cookie = `accessToken=${result.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+      document.cookie = `userRole=DOCTOR; path=/; max-age=604800; SameSite=Lax`;
 
       window.location.href = '/doctor/dashboard';
     } catch (err: any) {

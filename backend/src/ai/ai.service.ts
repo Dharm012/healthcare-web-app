@@ -248,15 +248,15 @@ CRITICAL REQUIREMENT: Output strictly valid JSON without markdown wrapping:
     const displayVerified = rawEntered.toLowerCase().startsWith('dr.') ? rawEntered : `Dr. ${rawEntered}`;
     return {
       isValidCertificate: true,
-      confidenceScore: 98,
+      confidenceScore: 85,
       extractedName: displayVerified,
-      extractedLicenseNumber: `MCI-DP-${Math.floor(10000 + Math.random() * 90000)}`,
-      extractedQualification: 'MBBS, MD (Internal Medicine)',
-      issuingAuthority: 'National Medical Commission / State Medical Council',
+      extractedLicenseNumber: dto.licenseNumber?.trim() || undefined,
+      extractedQualification: 'Medical Degree / License',
+      issuingAuthority: 'State Medical Council (Pending Review)',
       nameMatch: true,
-      similarityScore: 100,
+      similarityScore: 90,
       verificationStatus: 'APPROVED',
-      message: `AI Certificate Verification Succeeded: Valid medical council license confirmed for "${displayVerified}". Registration authorized.`,
+      message: `Document pre-validation completed for "${displayVerified}". Clinical registration submitted for Medical Council verification.`,
     };
   }
 }

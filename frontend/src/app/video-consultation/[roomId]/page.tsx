@@ -8,7 +8,7 @@ import {
   Clock, AlertTriangle, CheckCircle2, User, MessageSquare, 
   FileText, Loader2, ArrowLeft, Pill, Send, Copy, Check, Users,
   Plus, Trash2, Edit3, Save, Share2, Info, AlertCircle, Calendar,
-  Sparkles, Stethoscope, ChevronRight, X
+  Sparkles, Stethoscope, ChevronRight, X, RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,12 +20,16 @@ import { toast } from '@/components/ui/toast';
 import api from '@/lib/api';
 import { io, Socket } from 'socket.io-client';
 
-const ICE_SERVERS = {
+const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
+    { urls: 'stun:global.stun.twilio.com:3478' },
   ],
+  iceCandidatePoolSize: 10,
 };
 
 const COMMON_MEDICINES = [
@@ -72,6 +76,15 @@ interface MedicineItem {
   instructions: string;
 }
 
+interface ChatMessage {
+  id: string;
+  sender: string;
+  text: string;
+  time: string;
+  type?: string;
+  metadata?: any;
+}
+
 export default function VideoConsultationRoomPage() {
   const params = useParams();
   const router = useRouter();
@@ -90,12 +103,13 @@ export default function VideoConsultationRoomPage() {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [hasRemoteStream, setHasRemoteStream] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [showSidebar, setShowSidebar] = useState(true);
   const [sidebarTab, setSidebarTab] = useState<'chat' | 'medicines' | 'prescription' | 'patient_info'>('medicines');
   
-  // Chat state
-  const [chatMessages, setChatMessages] = useState<{ sender: string; text: string; time: string; type?: string; metadata?: any }[]>([
-    { sender: 'System', text: 'Encrypted 256-bit WebRTC Teleconsultation Room initialized.', time: 'Now' }
+  // Chat state with unique ID deduplication
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    { id: 'sys-init', sender: 'System', text: 'Encrypted 256-bit WebRTC Teleconsultation Room initialized.', time: 'Now' }
   ]);
   const [chatInput, setChatInput] = useState('');
   
@@ -104,9 +118,7 @@ export default function VideoConsultationRoomPage() {
   const [callEndedByRemote, setCallEndedByRemote] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
 
-  // =========================================================================
-  // PRESCRIPTION & MEDICINES STATE
-  // =========================================================================
+  // Prescription & Medicines State
   const [prescriptionData, setPrescriptionData] = useState<any>(null);
   const [diagnosis, setDiagnosis] = useState<string>('General Clinical Tele-Consultation');
   const [clinicalNotes, setClinicalNotes] = useState<string>('');
@@ -136,12 +148,12 @@ export default function VideoConsultationRoomPage() {
   const remoteStreamRef = useRef<MediaStream | null>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const socketRef = useRef<Socket | null>(null);
-  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
+  const iceCandidatesQueueRef = useRef<RTCIceCandidateInit[]>([]);
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Stop all camera and microphone hardware tracks immediately
   const stopAllMediaTracks = useCallback(() => {
-    console.log('Stopping all camera and microphone hardware tracks...');
+    console.log('Stopping camera and microphone hardware tracks...');
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => {
         try { track.stop(); } catch (e) { console.error('Error stopping track:', e); }
@@ -164,6 +176,21 @@ export default function VideoConsultationRoomPage() {
     }
     setHasRemoteStream(false);
   }, []);
+
+  // Continuous attachment of streams to video elements
+  useEffect(() => {
+    if (localVideoRef.current && localStreamRef.current) {
+      localVideoRef.current.srcObject = localStreamRef.current;
+      localVideoRef.current.play().catch(() => {});
+    }
+  }, [isVideoOn]);
+
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStreamRef.current) {
+      remoteVideoRef.current.srcObject = remoteStreamRef.current;
+      remoteVideoRef.current.play().catch(() => {});
+    }
+  }, [hasRemoteStream]);
 
   // 1. Fetch prescription draft for room
   const loadRoomPrescription = useCallback(async () => {
@@ -326,6 +353,20 @@ export default function VideoConsultationRoomPage() {
     }
   }, [authData?.allowed, callEndedByRemote]);
 
+  // Helper to drain queued ICE candidates after remote description is set
+  const processQueuedCandidates = async (pc: RTCPeerConnection) => {
+    while (iceCandidatesQueueRef.current.length > 0) {
+      const candidate = iceCandidatesQueueRef.current.shift();
+      if (candidate) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+          console.warn('Error processing queued ICE candidate:', err);
+        }
+      }
+    }
+  };
+
   // =========================================================================
   // WebRTC INITIALIZATION & SIGNALING
   // =========================================================================
@@ -333,134 +374,214 @@ export default function VideoConsultationRoomPage() {
     if (!authData?.allowed || !roomId) return;
 
     let isMounted = true;
-    const bc = new BroadcastChannel(`healthconnect_room_${roomId}`);
-    broadcastChannelRef.current = bc;
-
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-    const socket = io(backendUrl, { transports: ['websocket', 'polling'] });
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    const socket = io(backendUrl, { 
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 5,
+      auth: { token },
+    });
     socketRef.current = socket;
 
+    // Create RTCPeerConnection instance
     const createPeerConnection = (stream: MediaStream) => {
+      if (peerConnectionRef.current) {
+        try { peerConnectionRef.current.close(); } catch {}
+      }
+
       const pc = new RTCPeerConnection(ICE_SERVERS);
       peerConnectionRef.current = pc;
 
+      // Add local tracks
       stream.getTracks().forEach(track => {
         pc.addTrack(track, stream);
       });
 
+      // Handle remote incoming stream tracks
       pc.ontrack = (event) => {
+        console.log('WebRTC ontrack received:', event.track.kind, event.streams);
+        let streamToAttach: MediaStream;
+
         if (event.streams && event.streams[0]) {
-          remoteStreamRef.current = event.streams[0];
-          if (remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = event.streams[0];
+          streamToAttach = event.streams[0];
+        } else {
+          if (!remoteStreamRef.current) {
+            remoteStreamRef.current = new MediaStream();
           }
-          setHasRemoteStream(true);
+          remoteStreamRef.current.addTrack(event.track);
+          streamToAttach = remoteStreamRef.current;
+        }
+
+        remoteStreamRef.current = streamToAttach;
+
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = streamToAttach;
+          remoteVideoRef.current.play().catch(e => console.log('Autoplay handled:', e));
+        }
+        setHasRemoteStream(true);
+        setConnectionStatus('connected');
+      };
+
+      // Handle ICE Candidates
+      pc.onicecandidate = (event) => {
+        if (event.candidate && socketRef.current) {
+          socketRef.current.emit('ice-candidate', { roomId, candidate: event.candidate });
         }
       };
 
-      pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          const candidateData = { roomId, candidate: event.candidate };
-          socket.emit('ice-candidate', candidateData);
-          bc.postMessage({ type: 'ice-candidate', candidate: event.candidate });
+      pc.oniceconnectionstatechange = () => {
+        console.log('ICE Connection State:', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+          setHasRemoteStream(true);
+          setConnectionStatus('connected');
+        } else if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
+          setConnectionStatus('disconnected');
+        }
+      };
+
+      pc.onconnectionstatechange = () => {
+        console.log('Peer Connection State:', pc.connectionState);
+        if (pc.connectionState === 'connected') {
+          setHasRemoteStream(true);
+          setConnectionStatus('connected');
+        } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+          setConnectionStatus('disconnected');
         }
       };
 
       return pc;
     };
 
+    // Initiate WebRTC Offer (Caller)
     const initiateCall = async (pc: RTCPeerConnection) => {
       try {
-        const offer = await pc.createOffer();
+        console.log('Initiating WebRTC offer as caller...');
+        const offer = await pc.createOffer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true,
+        });
         await pc.setLocalDescription(offer);
         socket.emit('offer', { roomId, offer, senderRole: authData?.role });
-        bc.postMessage({ type: 'offer', offer, senderRole: authData?.role });
       } catch (err) {
-        console.error('Error creating offer:', err);
+        console.error('Error creating WebRTC offer:', err);
       }
     };
 
+    // Acquire Local User Media Camera & Mic
     navigator.mediaDevices?.getUserMedia({
       video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
-      audio: true,
+      audio: { echoCancellation: true, noiseSuppression: true },
     })
+      .catch(() => {
+        // Fallback to basic constraints if HD not available
+        return navigator.mediaDevices?.getUserMedia({ video: true, audio: true });
+      })
       .then(async (stream) => {
-        if (!isMounted) {
-          stream.getTracks().forEach(t => t.stop());
-          return;
-        }
+        if (!isMounted || !stream) return;
 
         localStreamRef.current = stream;
-        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+          localVideoRef.current.play().catch(() => {});
+        }
 
         const pc = createPeerConnection(stream);
 
+        // Join room via Socket
         socket.emit('join-room', {
           roomId,
           role: authData?.role,
           name: authData?.role === 'DOCTOR' ? (authData?.doctorName || 'Doctor') : (authData?.patientEmail || 'Patient'),
         });
 
-        bc.postMessage({ type: 'user-joined', role: authData?.role });
+        // Socket Event Listeners
+        socket.on('user-joined', async () => {
+          console.log('Peer joined the room. Creating offer...');
+          await initiateCall(pc);
+        });
 
-        const handleSignalData = async (type: string, data: any) => {
+        socket.on('offer', async (data: { offer: RTCSessionDescriptionInit }) => {
           try {
-            if (type === 'user-joined') {
-              await initiateCall(pc);
-            } else if (type === 'offer') {
+            console.log('Received WebRTC offer. Creating answer...');
+            if (pc.signalingState !== 'stable') {
+              await Promise.all([
+                pc.setLocalDescription({ type: 'rollback' }),
+                pc.setRemoteDescription(new RTCSessionDescription(data.offer)),
+              ]);
+            } else {
               await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-              const answer = await pc.createAnswer();
-              await pc.setLocalDescription(answer);
-              socket.emit('answer', { roomId, answer });
-              bc.postMessage({ type: 'answer', answer });
-            } else if (type === 'answer') {
-              if (pc.signalingState !== 'stable') {
-                await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-              }
-            } else if (type === 'ice-candidate' && data.candidate) {
-              try {
-                await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-              } catch (e) {
-                console.error('Error adding ICE candidate:', e);
-              }
-            } else if (type === 'call-ended') {
-              setCallEndedByRemote(true);
-              stopAllMediaTracks();
-            } else if (type === 'in-call-message') {
-              setChatMessages(prev => [...prev, data]);
-            } else if (type === 'prescription-sync') {
-              if (authData?.role === 'PATIENT' && data.prescription) {
-                setPrescriptionData(data.prescription);
-              }
-            } else if (type === 'prescription-finalized') {
-              setPrescriptionData(data.prescription);
-              toast.add({
-                title: 'Prescription Finalized',
-                description: 'The doctor has finalized the digital prescription for this consultation.',
-                type: 'success',
-              });
+            }
+            await processQueuedCandidates(pc);
+
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            socket.emit('answer', { roomId, answer });
+          } catch (e) {
+            console.error('Error handling offer:', e);
+          }
+        });
+
+        socket.on('answer', async (data: { answer: RTCSessionDescriptionInit }) => {
+          try {
+            console.log('Received WebRTC answer. Setting remote description...');
+            if (pc.signalingState === 'have-local-offer') {
+              await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+              await processQueuedCandidates(pc);
             }
           } catch (e) {
-            console.error('Signaling handling error:', e);
+            console.error('Error handling answer:', e);
           }
-        };
+        });
 
-        socket.on('user-joined', (d) => handleSignalData('user-joined', d));
-        socket.on('offer', (d) => handleSignalData('offer', d));
-        socket.on('answer', (d) => handleSignalData('answer', d));
-        socket.on('ice-candidate', (d) => handleSignalData('ice-candidate', d));
-        socket.on('call-ended', (d) => handleSignalData('call-ended', d));
-        socket.on('in-call-message', (d) => handleSignalData('in-call-message', d));
-        socket.on('prescription-sync', (d) => handleSignalData('prescription-sync', d));
-        socket.on('prescription-finalized', (d) => handleSignalData('prescription-finalized', d));
+        socket.on('ice-candidate', async (data: { candidate: RTCIceCandidateInit }) => {
+          try {
+            if (data.candidate) {
+              if (pc.remoteDescription && pc.remoteDescription.type) {
+                await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+              } else {
+                iceCandidatesQueueRef.current.push(data.candidate);
+              }
+            }
+          } catch (e) {
+            console.warn('ICE candidate queuing on error:', e);
+            if (data.candidate) iceCandidatesQueueRef.current.push(data.candidate);
+          }
+        });
 
-        bc.onmessage = (event) => {
-          const { type, ...rest } = event.data;
-          handleSignalData(type, rest);
-        };
+        socket.on('in-call-message', (data: ChatMessage) => {
+          setChatMessages(prev => {
+            if (prev.some(m => m.id && m.id === data.id)) return prev;
+            return [...prev, data];
+          });
+        });
+
+        socket.on('prescription-sync', (data: any) => {
+          if (authData?.role === 'PATIENT' && data.prescription) {
+            setPrescriptionData(data.prescription);
+          }
+        });
+
+        socket.on('prescription-finalized', (data: any) => {
+          setPrescriptionData(data.prescription);
+          toast.add({
+            title: 'Prescription Finalized',
+            description: 'The doctor has finalized the digital prescription for this consultation.',
+            type: 'success',
+          });
+        });
+
+        socket.on('call-ended', () => {
+          setCallEndedByRemote(true);
+          stopAllMediaTracks();
+        });
       })
       .catch((err) => {
-        console.error('Camera/Microphone permission denied:', err);
+        console.error('Camera/Microphone error:', err);
+        toast.add({
+          title: 'Media Device Alert',
+          description: 'Camera or microphone access was denied or not found.',
+          type: 'warning',
+        });
       });
 
     const handleBeforeUnload = () => {
@@ -473,7 +594,6 @@ export default function VideoConsultationRoomPage() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       stopAllMediaTracks();
       socket.disconnect();
-      bc.close();
     };
   }, [authData?.allowed, roomId, stopAllMediaTracks]);
 
@@ -599,7 +719,6 @@ export default function VideoConsultationRoomPage() {
 
     setIsFinalizing(true);
     try {
-      // First save latest draft
       await api.post(`/api/prescriptions/room/${roomId}/save-draft`, {
         diagnosis,
         notes: clinicalNotes,
@@ -641,15 +760,15 @@ export default function VideoConsultationRoomPage() {
     }
   };
 
-  // Share Prescription in In-Call Chat
+  // Share Prescription in In-Call Chat (Deduped)
   const handleSharePrescriptionInChat = () => {
     if (medicines.length === 0) {
       toast.add({ title: 'No Medicines', description: 'Add medicines first before sharing in chat.', type: 'warning' });
       return;
     }
 
-    const shareMsg = {
-      roomId,
+    const shareMsg: ChatMessage = {
+      id: `rx-share-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       sender: authData?.role === 'DOCTOR' ? (authData?.doctorName || 'Dr. Dharm Patel') : 'Doctor',
       text: `💊 Prescription Shared: Dr. ${authData?.doctorName || 'Doctor'} prescribed ${medicines.length} medicine(s).`,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -662,10 +781,7 @@ export default function VideoConsultationRoomPage() {
     };
 
     if (socketRef.current) {
-      socketRef.current.emit('in-call-message', shareMsg);
-    }
-    if (broadcastChannelRef.current) {
-      broadcastChannelRef.current.postMessage(shareMsg);
+      socketRef.current.emit('in-call-message', { roomId, ...shareMsg });
     }
     setChatMessages(prev => [...prev, shareMsg]);
     toast.add({ title: 'Prescription Shared', description: 'Prescription summary shared to room chat.', type: 'success' });
@@ -685,9 +801,6 @@ export default function VideoConsultationRoomPage() {
     try {
       if (socketRef.current) {
         socketRef.current.emit('end-call', { roomId, senderRole: authData?.role });
-      }
-      if (broadcastChannelRef.current) {
-        broadcastChannelRef.current.postMessage({ type: 'call-ended', senderRole: authData?.role });
       }
 
       stopAllMediaTracks();
@@ -710,20 +823,27 @@ export default function VideoConsultationRoomPage() {
     }
   };
 
+  // Send Chat Message (Deduped)
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
 
-    const newMsg = {
-      roomId,
+    const newMsg: ChatMessage = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       sender: authData?.role === 'DOCTOR' ? (authData?.doctorName || 'Doctor') : (authData?.patientEmail?.split('@')[0] || 'Patient'),
       text: chatInput.trim(),
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    if (socketRef.current) socketRef.current.emit('in-call-message', newMsg);
-    if (broadcastChannelRef.current) broadcastChannelRef.current.postMessage({ type: 'in-call-message', ...newMsg });
-    setChatMessages(prev => [...prev, newMsg]);
+    if (socketRef.current) {
+      socketRef.current.emit('in-call-message', { roomId, ...newMsg });
+    }
+    
+    // Add locally once
+    setChatMessages(prev => {
+      if (prev.some(m => m.id === newMsg.id)) return prev;
+      return [...prev, newMsg];
+    });
     setChatInput('');
   };
 
@@ -850,7 +970,11 @@ export default function VideoConsultationRoomPage() {
               <h3 className="font-bold text-xs sm:text-sm text-white">
                 Teleconsultation with {remoteParticipantName}
               </h3>
-              <Badge className="bg-emerald-950 text-emerald-300 border-emerald-500/40 text-[9px] px-1.5 py-0">
+              <Badge className={`text-[9px] px-1.5 py-0 ${
+                hasRemoteStream
+                  ? 'bg-emerald-950 text-emerald-300 border-emerald-500/40'
+                  : 'bg-amber-950 text-amber-300 border-amber-500/40'
+              }`}>
                 {hasRemoteStream ? '● Live HD' : '○ Waiting for Peer'}
               </Badge>
             </div>
@@ -900,29 +1024,29 @@ export default function VideoConsultationRoomPage() {
       {/* Main Video Viewports Grid */}
       <main className="flex-1 p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3.5 relative overflow-y-auto lg:overflow-hidden min-h-0">
         
-        {/* Remote Video Stream (Main Focus) */}
-        <div className={`${showSidebar ? 'lg:col-span-7 xl:col-span-8' : 'lg:col-span-12'} transition-all duration-300 relative rounded-3xl bg-slate-950 border border-teal-500/30 overflow-hidden flex items-center justify-center shadow-2xl min-h-[300px]`}>
+        {/* Remote Video Stream Container */}
+        <div className={`${showSidebar ? 'lg:col-span-7 xl:col-span-8' : 'lg:col-span-12'} transition-all duration-300 relative rounded-3xl bg-slate-950 border border-teal-500/30 overflow-hidden flex items-center justify-center shadow-2xl min-h-[320px]`}>
           
-          {/* Live Remote Peer Video Stream */}
+          {/* Live Remote Video Element - ALWAYS MOUNTED to guarantee track playback */}
           <video 
             ref={remoteVideoRef} 
             autoPlay 
             playsInline 
-            className={`w-full h-full object-cover rounded-3xl ${hasRemoteStream ? 'block' : 'hidden'}`}
+            className="w-full h-full object-cover rounded-3xl"
           />
 
-          {/* Placeholder while waiting for peer to connect */}
+          {/* Placeholder Overlay when Peer Video is Connecting / Waiting */}
           {!hasRemoteStream && (
-            <div className="w-full h-full min-h-[340px] sm:min-h-[440px] bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/40 flex flex-col items-center justify-center p-6 text-center relative">
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/40 flex flex-col items-center justify-center p-6 text-center z-5">
               <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-teal-800/60 border-4 border-teal-500/40 flex items-center justify-center text-2xl sm:text-3xl font-extrabold text-white shadow-2xl">
                 {remoteParticipantName.substring(0, 2).toUpperCase()}
               </div>
               <h3 className="text-base sm:text-lg font-bold text-white mt-4">{remoteParticipantName}</h3>
               <p className="text-xs text-teal-400 font-semibold">{remoteParticipantRole} • Connecting secure video feed...</p>
 
-              <div className="absolute top-4 left-4 bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-full flex items-center gap-2 text-[11px] text-slate-300 backdrop-blur-md">
+              <div className="mt-4 bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 rounded-full flex items-center gap-2 text-[11px] text-slate-300 backdrop-blur-md">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                <span>Waiting for {remoteParticipantRole} to open room</span>
+                <span>Waiting for {remoteParticipantRole} to open consultation room</span>
               </div>
             </div>
           )}
@@ -934,10 +1058,10 @@ export default function VideoConsultationRoomPage() {
               autoPlay 
               playsInline 
               muted 
-              className={`w-full h-full object-cover mirror ${isVideoOn ? 'block' : 'hidden'}`} 
+              className="w-full h-full object-cover [transform:scaleX(-1)]" 
             />
             {!isVideoOn && (
-              <div className="text-center p-2">
+              <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-2 text-center">
                 <VideoOff className="w-4 h-4 text-slate-500 mx-auto mb-0.5" />
                 <span className="text-[9px] text-slate-400">Camera Off</span>
               </div>
@@ -1027,7 +1151,7 @@ export default function VideoConsultationRoomPage() {
                       size="sm" 
                       variant="outline" 
                       onClick={handleReopenPrescription} 
-                      className="text-[10px] h-7 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/50"
+                      className="text-[10px] h-7 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/50 cursor-pointer"
                     >
                       <Edit3 className="w-3 h-3 mr-1" /> Edit Prescription
                     </Button>
@@ -1086,7 +1210,7 @@ export default function VideoConsultationRoomPage() {
                         <Pill className="w-3.5 h-3.5" />
                         {editingMedIndex !== null ? 'Edit Medicine' : 'Add New Medicine'}
                       </h4>
-                      <button onClick={() => setShowAddMedForm(false)} className="text-slate-400 hover:text-white">
+                      <button onClick={() => setShowAddMedForm(false)} className="text-slate-400 hover:text-white cursor-pointer">
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -1107,7 +1231,7 @@ export default function VideoConsultationRoomPage() {
                             key={name}
                             type="button"
                             onClick={() => setMedName(name)}
-                            className="text-[9px] px-2 py-0.5 rounded-md bg-slate-900 text-teal-300 border border-slate-800 hover:border-teal-500"
+                            className="text-[9px] px-2 py-0.5 rounded-md bg-slate-900 text-teal-300 border border-slate-800 hover:border-teal-500 cursor-pointer"
                           >
                             + {name}
                           </button>
@@ -1198,7 +1322,7 @@ export default function VideoConsultationRoomPage() {
                           onChange={(e) => setCustomTimeInput(e.target.value)}
                           className="h-7 text-[10px] bg-slate-900 border-slate-800"
                         />
-                        <Button type="button" size="sm" onClick={handleAddCustomTime} className="h-7 text-[10px] bg-slate-800 hover:bg-slate-700">
+                        <Button type="button" size="sm" onClick={handleAddCustomTime} className="h-7 text-[10px] bg-slate-800 hover:bg-slate-700 cursor-pointer">
                           Add
                         </Button>
                       </div>
@@ -1222,7 +1346,7 @@ export default function VideoConsultationRoomPage() {
                               key={d}
                               type="button"
                               onClick={() => setMedDurationDays(d)}
-                              className={`text-[9px] px-1.5 py-0.5 rounded border ${
+                              className={`text-[9px] px-1.5 py-0.5 rounded border cursor-pointer ${
                                 medDurationDays === d ? 'bg-teal-500/20 text-teal-300 border-teal-500' : 'bg-slate-900 text-slate-400 border-slate-800'
                               }`}
                             >
@@ -1258,7 +1382,7 @@ export default function VideoConsultationRoomPage() {
                             key={inst}
                             type="button"
                             onClick={() => setMedInstructions(inst)}
-                            className="text-[9px] px-2 py-0.5 rounded-md bg-slate-900 text-slate-300 border border-slate-800 hover:border-teal-500 truncate max-w-full"
+                            className="text-[9px] px-2 py-0.5 rounded-md bg-slate-900 text-slate-300 border border-slate-800 hover:border-teal-500 truncate max-w-full cursor-pointer"
                           >
                             {inst}
                           </button>
@@ -1270,7 +1394,7 @@ export default function VideoConsultationRoomPage() {
                       <Button variant="outline" size="sm" onClick={() => setShowAddMedForm(false)} className="h-8 text-xs border-slate-800">
                         Cancel
                       </Button>
-                      <Button size="sm" onClick={handleSaveMedicineItem} className="h-8 text-xs bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold">
+                      <Button size="sm" onClick={handleSaveMedicineItem} className="h-8 text-xs bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold cursor-pointer">
                         {editingMedIndex !== null ? 'Update Medicine' : '+ Add to Prescription'}
                       </Button>
                     </div>
@@ -1303,14 +1427,14 @@ export default function VideoConsultationRoomPage() {
                             <div className="flex gap-1">
                               <button 
                                 onClick={() => openEditMedicine(idx)}
-                                className="p-1 rounded-md text-slate-400 hover:text-teal-300 hover:bg-slate-900"
+                                className="p-1 rounded-md text-slate-400 hover:text-teal-300 hover:bg-slate-900 cursor-pointer"
                                 title="Edit"
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
                               </button>
                               <button 
                                 onClick={() => handleRemoveMedicine(idx)}
-                                className="p-1 rounded-md text-slate-400 hover:text-red-400 hover:bg-slate-900"
+                                className="p-1 rounded-md text-slate-400 hover:text-red-400 hover:bg-slate-900 cursor-pointer"
                                 title="Remove"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1405,7 +1529,7 @@ export default function VideoConsultationRoomPage() {
                     <Button 
                       size="sm" 
                       onClick={handleSharePrescriptionInChat}
-                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-xs h-8"
+                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-xs h-8 cursor-pointer"
                     >
                       <Share2 className="w-3.5 h-3.5 mr-1" /> Share in Chat
                     </Button>
@@ -1414,12 +1538,12 @@ export default function VideoConsultationRoomPage() {
               </div>
             )}
 
-            {/* TAB 3: IN-CALL CHAT */}
+            {/* TAB 3: IN-CALL CHAT (DEDUPED) */}
             {sidebarTab === 'chat' && (
               <div className="flex-1 flex flex-col justify-between overflow-hidden max-h-[calc(100vh-230px)]">
                 <div className="flex-1 p-3.5 overflow-y-auto space-y-2.5">
-                  {chatMessages.map((m, i) => (
-                    <div key={i} className="text-xs p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                  {chatMessages.map((m) => (
+                    <div key={m.id} className="text-xs p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
                       <div className="flex items-center justify-between text-[10px] text-slate-500">
                         <span className="font-bold text-teal-300">{m.sender}</span>
                         <span>{m.time}</span>
@@ -1433,7 +1557,7 @@ export default function VideoConsultationRoomPage() {
                           <Button 
                             size="sm" 
                             onClick={() => setSidebarTab('prescription')}
-                            className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-[10px] h-6 mt-1"
+                            className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-[10px] h-6 mt-1 cursor-pointer"
                           >
                             View Full Prescription Document
                           </Button>
@@ -1451,7 +1575,7 @@ export default function VideoConsultationRoomPage() {
                     onChange={(e) => setChatInput(e.target.value)}
                     className="flex-1 bg-slate-900 border border-teal-500/30 text-white text-xs px-3 py-2 rounded-xl focus:outline-none focus:border-teal-400"
                   />
-                  <Button type="submit" size="icon" className="h-8 w-8 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950">
+                  <Button type="submit" size="icon" className="h-8 w-8 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 cursor-pointer">
                     <Send className="w-3.5 h-3.5" />
                   </Button>
                 </form>
@@ -1617,14 +1741,14 @@ export default function VideoConsultationRoomPage() {
               <Button 
                 variant="outline" 
                 onClick={() => setShowFinalizeModal(false)}
-                className="text-xs h-9 border-slate-700"
+                className="text-xs h-9 border-slate-700 cursor-pointer"
               >
                 Cancel
               </Button>
               <Button 
                 onClick={handleFinalizePrescription}
                 disabled={isFinalizing}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-9"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-9 cursor-pointer"
               >
                 {isFinalizing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Check className="w-3.5 h-3.5 mr-1" />}
                 Yes, Finalize Prescription
@@ -1655,7 +1779,7 @@ export default function VideoConsultationRoomPage() {
                   await handleFinalizePrescription();
                   executeEndCall();
                 }}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-10"
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-10 cursor-pointer"
               >
                 <CheckCircle2 className="w-4 h-4 mr-1.5" />
                 Finalize Rx &amp; End Consultation
@@ -1667,7 +1791,7 @@ export default function VideoConsultationRoomPage() {
                   setShowEndCallUnfinishedModal(false);
                   executeEndCall();
                 }}
-                className="w-full border-red-500/40 text-red-400 hover:bg-red-950/40 text-xs h-10"
+                className="w-full border-red-500/40 text-red-400 hover:bg-red-950/40 text-xs h-10 cursor-pointer"
               >
                 End Without Finalizing Prescription
               </Button>
@@ -1675,7 +1799,7 @@ export default function VideoConsultationRoomPage() {
               <Button 
                 variant="ghost"
                 onClick={() => setShowEndCallUnfinishedModal(false)}
-                className="w-full text-slate-400 hover:text-white text-xs h-8"
+                className="w-full text-slate-400 hover:text-white text-xs h-8 cursor-pointer"
               >
                 Cancel (Stay in Call)
               </Button>

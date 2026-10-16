@@ -1,7 +1,17 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+
+function handleLogout() {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
+  localStorage.removeItem("userName");
+  localStorage.removeItem("userRole");
+  localStorage.removeItem("userEmail");
+  document.cookie = "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  window.location.href = "/login";
+}
 import { usePathname } from 'next/navigation';
 import { 
   ShieldCheck, LayoutDashboard, Users, UserCheck, BarChart3, 
@@ -69,11 +79,13 @@ function SidebarContent({ pathname, onLinkClick }: { pathname: string; onLinkCli
         </nav>
       </div>
       <div className="border-t border-slate-700 p-4">
-        <Button variant="outline" className="w-full justify-start text-red-400 border-slate-600 hover:text-red-300 hover:bg-slate-800" asChild>
-          <Link href="/login" onClick={onLinkClick}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Log out
-          </Link>
+        <Button 
+          variant="outline" 
+          onClick={handleLogout}
+          className="w-full justify-start text-red-400 border-slate-600 hover:text-red-300 hover:bg-slate-800 cursor-pointer"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Log out
         </Button>
       </div>
     </>
@@ -83,6 +95,25 @@ function SidebarContent({ pathname, onLinkClick }: { pathname: string; onLinkCli
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    const role = localStorage.getItem("userRole");
+    if (!token || role !== "ADMIN") {
+      window.location.href = "/login";
+    } else {
+      setIsAuthorized(true);
+    }
+  }, []);
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-300 text-sm">
+        Verifying administrator authorization...
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-50/50">

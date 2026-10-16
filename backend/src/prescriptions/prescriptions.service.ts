@@ -769,9 +769,7 @@ export class PrescriptionsService {
     }
 
     if (!patientId) {
-      const defaultPatient = await this.prisma.patientProfile.findFirst();
-      if (!defaultPatient) throw new NotFoundException('No registered patient found to assign prescription.');
-      patientId = defaultPatient.id;
+      throw new BadRequestException('A valid patient ID or registered patient email is required to assign this prescription.');
     }
 
     const prescription = await this.prisma.prescription.create({

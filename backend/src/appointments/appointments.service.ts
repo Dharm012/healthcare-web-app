@@ -471,7 +471,7 @@ export class AppointmentsService implements OnModuleInit, OnModuleDestroy {
       roomId: appointment.videoRoomId || appointment.id,
       status: currentStatus,
       role,
-      doctorName: appointment.doctor.fullName || 'Dr. Dharm Patel',
+      doctorName: appointment.doctor.fullName || 'Doctor',
       patientEmail: appointment.patient.user.email,
       scheduledAt: appointment.scheduledAt,
       duration: appointment.duration,
